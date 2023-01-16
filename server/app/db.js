@@ -15,5 +15,5 @@ const sequelize = new Sequelize(
 );
 const Fellow = sequelize.define("fellow", fellowModel);
 Fellow.hasMany(Fellow, { as: "subordinates", foreignKey: "chief" });
-Fellow.belongsTo(Fellow, { as: "chief_", foreignKey: "chief" });
+Fellow.belongsTo(Fellow, { as: "myChief", foreignKey: "chief" });
 module.exports = {sequelize, Fellow}

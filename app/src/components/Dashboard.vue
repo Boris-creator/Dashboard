@@ -1,6 +1,6 @@
 <template>
-  <b-container fluid="lg" class="wrapper">
-    <b-row class="wrapper">
+  <b-container fluid="lg" class="h-100">
+    <b-row class="wrapper h-100">
       <b-col cols="3" class="sidebar">
         <b-container>
           <b-row class="mt-5">
@@ -28,15 +28,26 @@ import fellows from "../examples/fellows.json";
 export default class Dashboard extends Vue {
   $store!: Store;
   private apiURLs = apiURLs;
+
+  getFellowsOffline() {
+    this.$store.commit("setFellows", fellows);
+  }
   async created() {
-    const response = await fetch(`${this.apiURLs.api}${this.apiURLs.getAll}`, {
-      method: "POST",
-    });
-    if (response.ok) {
-      const dataFromDB = await response.json();
-      this.$store.commit("setFellows", dataFromDB.fellows);
-    } else {
-      this.$store.commit("setFellows", fellows);
+    try {
+      const response = await fetch(
+        `${this.apiURLs.api}${this.apiURLs.getAll}`,
+        {
+          method: "POST",
+        }
+      );
+      if (response.ok) {
+        const dataFromDB = await response.json();
+        this.$store.commit("setFellows", dataFromDB.fellows);
+      } else {
+        this.getFellowsOffline();
+      }
+    } catch (err) {
+      this.getFellowsOffline();
     }
   }
 }
@@ -45,9 +56,6 @@ export default class Dashboard extends Vue {
 .router-link-active {
   opacity: 0.6;
   cursor: default;
-}
-.wrapper {
-  min-height: 100vh;
 }
 .sidebar {
   background: lightsteelblue;

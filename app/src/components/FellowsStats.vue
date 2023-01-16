@@ -104,11 +104,6 @@ export default class Stats extends Vue {
     }
     return categories.map((c) => result[c]);
   }
-
-  chartData = {
-    labels: ["January", "February", "March"],
-    datasets: [{ data: [40, 20, 0] }],
-  };
   chartOptions = {
     responsive: true,
     y: {

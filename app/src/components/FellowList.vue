@@ -35,9 +35,7 @@ export default class FellowList extends Vue {
     return this.$store.state.fellows;
   }
   private persons: Map<number, FellowNode> = new Map();
-  async addFellow(fellow: NewFellow) {
-    this.addToTree(fellow as Fellow);
-    this.actionAdd = false;
+  private async postFellow(fellow: NewFellow) {
     const response = await fetch(this.apiURLs.api + this.apiURLs.addOne, {
       //все эти fetch надо будет в отдельный метод вынести...
       method: "POST",
@@ -46,11 +44,24 @@ export default class FellowList extends Vue {
       },
       body: JSON.stringify(fellow),
     });
+    const payload = await response.json();
     if (response.ok) {
-      const { id } = await response.json();
-      fellow.id = id;
-      this.$store.commit("addFellow", fellow);
+      return payload.id;
     }
+    throw new Error(payload);
+  }
+
+  async addFellow(fellow: NewFellow) {
+    this.addToTree(fellow as Fellow);
+    this.actionAdd = false;
+    try {
+      const savedFellow = await this.postFellow(fellow);
+      const { id } = savedFellow;
+      fellow.id = id;
+    } catch (error) {
+      //...
+    }
+    this.$store.commit("addFellow", fellow);
   }
   private addToTree(
     fellow: Fellow,
@@ -109,7 +120,7 @@ export default class FellowList extends Vue {
       transform: (s: Fellow["sex"]) => ["М", "Ж"][s],
     },
     { key: "phone", title: "Телефон", size: 0.3 },
-  ];
+  ].map((col) => ({ ...col, sortingOrder: 1 }));
   actionAdd = false;
 
   private initTree() {

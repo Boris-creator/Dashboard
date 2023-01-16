@@ -13,8 +13,12 @@
       >
         <span @click="sortByOwn.key = column.key">{{ column.title }}</span>
         <span
-          @click="sortByOwn.direction *= -1"
-          v-html="sortByOwn.direction + 1 ? '&uarr;' : '&darr;'"
+          @click="
+            sortByOwn.key = column.key;
+            sortByOwn.direction *= -1;
+          "
+          v-html="column.sortingOrder + 1 ? '&uarr;' : '&darr;'"
+          class="sort-dir"
         ></span>
       </div>
     </div>
@@ -46,6 +50,10 @@
 </template>
 
 <script lang="ts">
+/*
+ Таблицу решил реализовать своим компонентом, это должно дать больше свободы стилизации, управления.
+ Но возможно это не лучшее решение, и следовало использовать b-table с нормальной сортировкой из коробки.
+*/
 import { Component, Vue, Prop, Watch } from "vue-property-decorator";
 import { Fellow, Node, Sort } from "../types";
 
@@ -67,6 +75,7 @@ export default class SortableTable extends Vue {
     title: string;
     size: number;
     transform?: Function;
+    sortingOrder: Sort<any>["direction"];
   }[];
   @Prop({
     type: Object,
@@ -101,6 +110,10 @@ export default class SortableTable extends Vue {
   @Watch("sortBy.direction")
   updateSortingDirection(sortDir: Sort<any>["direction"]) {
     this.sortByOwn.direction = sortDir;
+    const column = this.columns.find(
+      ({ key }) => key == this.sortByOwn.key
+    ) as (typeof this.columns)[number];
+    column.sortingOrder = sortDir;
   }
   get targets() {
     return this.observerOwn?.takeRecords().map((e) => e.target);
@@ -108,6 +121,8 @@ export default class SortableTable extends Vue {
   created() {
     this.showHead = this.isRoot;
     this.sortByOwn = { ...this.sortBy };
+    // Хотел организовать централизованное слежение, чтобы сортировать только таблицы в зоне видимости.
+    // TO DO: закончить и оценить, будет ли выигрыш в производительности или наоборот
     if (this.isRoot) {
       this.observerOwn = new IntersectionObserver(() => {}, { threshold: 0.1 });
     } else {
@@ -141,6 +156,14 @@ export default class SortableTable extends Vue {
     font-weight: bolder;
     span {
       cursor: pointer;
+    }
+    .sort-dir {
+      display: none;
+    }
+    &:hover {
+      .sort-dir {
+        display: inline;
+      }
     }
   }
 }
