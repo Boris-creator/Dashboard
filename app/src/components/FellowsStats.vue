@@ -1,17 +1,23 @@
 <template>
   <div>
     <div class="bar-wrapper">
-      <Bar :options="chartOptions" :data="ageSlice" />
+      <Bar :options="chartOptions" :data="ageSlice.value" />
     </div>
     <div class="bar-wrapper">
-      <Bar :options="chartOptions" :data="sexSlice" />
+      <Bar :options="chartOptions" :data="sexSlice.value" />
+    </div>
+
+    <div class="bar-wrapper">
+      <!--<BarChart :options="chartOptions" :chartData="ageSlice.value" />-->
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+<script setup lang="ts">
+import { computed } from "@vue/composition-api";
+import { store } from "../store";
 import { Bar } from "vue-chartjs";
+//import { BarChart } from "vue-chart-3";
 import {
   Chart as ChartJS,
   Title,
@@ -21,7 +27,6 @@ import {
   CategoryScale,
   LinearScale,
 } from "chart.js";
-import { Store } from "../types";
 
 ChartJS.register(
   Title,
@@ -32,87 +37,82 @@ ChartJS.register(
   LinearScale
 );
 
-@Component({
-  components: { Bar },
-})
-export default class Stats extends Vue {
-  $store!: Store;
-  get persons() {
-    return this.$store.state.fellows;
+function getSlice<T>(
+  items: T[],
+  categories: string[],
+  classificator: (item: T) => string,
+  dataType: "absolute" | "percent" = "absolute"
+) {
+  const result = Object.fromEntries(categories.map((c) => [c, 0]));
+  for (let item of items) {
+    const category: string = classificator(item);
+    result[category]++;
   }
-  get ageSlice() {
-    const labels = ["Призывной", "Предпенсионный", "пенсионный"];
-    const stats = this.getSlice(this.persons, labels, ({ age }) => {
-      const diapasons = [
-        [18, 25],
-        [26, 60],
-        [60, Infinity],
-      ];
-      return labels[
-        diapasons.findIndex(
-          ([min, max]) => Math.max(Math.min(age, max), min) == age
-        )
-      ];
-    });
-    return {
-      labels,
-      datasets: [
-        {
-          data: stats,
-          label: "Возраста сотрудников",
-          backgroundColor: "darkgrey",
-        },
-      ],
-    };
-  }
-  get sexSlice() {
-    const labels = ["Мужчины", "Женщины"];
-    const stats = this.getSlice(
-      this.persons,
-      labels,
-      ({ sex }) => labels[sex],
-      "percent"
-    );
-    return {
-      labels,
-      datasets: [
-        {
-          data: stats,
-          label: "Пол сотрудников, %",
-          backgroundColor: ["lightblue", "lightcoral"],
-        },
-      ],
-    };
-  }
-
-  private getSlice<T>(
-    items: T[],
-    categories: string[],
-    classificator: (item: T) => string,
-    dataType: "absolute" | "percent" = "absolute"
-  ) {
-    const result = Object.fromEntries(categories.map((c) => [c, 0]));
-    for (let item of items) {
-      const category: string = classificator(item);
-      result[category]++;
+  if (dataType == "percent") {
+    for (let key in result) {
+      result[key] /= items.length;
+      result[key] *= 100;
     }
-    if (dataType == "percent") {
-      for (let key in result) {
-        result[key] /= items.length;
-        result[key] *= 100;
-      }
-    }
-    return categories.map((c) => result[c]);
   }
-  chartOptions = {
-    responsive: true,
-    y: {
-      ticks: {
-        stepSize: 1,
-      },
-    },
-  };
+  return categories.map((c) => result[c]);
 }
+const persons = computed(() => store.state.fellows);
+const chartOptions = {
+  responsive: true,
+  y: {
+    ticks: {
+      stepSize: 1,
+    },
+  },
+};
+
+const labels = {
+  age: ["Призывной", "Предпенсионный", "пенсионный"],
+  sex: ["Мужчины", "Женщины"],
+};
+
+const ageSlice = computed(() => {
+  const statsAge = getSlice(persons.value, labels.age, ({ age }) => {
+    const diapasons = [
+      [18, 25],
+      [26, 60],
+      [60, Infinity],
+    ];
+    return labels.age[
+      diapasons.findIndex(
+        ([min, max]) => Math.max(Math.min(age, max), min) == age
+      )
+    ];
+  });
+  return {
+    labels: labels.age,
+    datasets: [
+      {
+        data: statsAge,
+        label: "Возраста сотрудников",
+        backgroundColor: "darkgrey",
+      },
+    ],
+  };
+});
+const sexSlice = computed(() => {
+  const statsSex = getSlice(
+    persons.value,
+    labels.sex,
+    ({ sex }) => labels.sex[sex],
+    "percent"
+  );
+  return {
+    labels: labels.sex,
+    datasets: [
+      {
+        data: statsSex,
+        label: "Пол сотрудников, %",
+        backgroundColor: ["lightblue", "lightcoral"],
+      },
+    ],
+  };
+});
 </script>
 
 <style lang="scss" scoped>

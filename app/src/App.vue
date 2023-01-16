@@ -5,12 +5,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { defineComponent } from "@vue/composition-api";
 import Dashboard from "./components/Dashboard.vue";
-@Component({
+export default defineComponent({
   components: { Dashboard },
-})
-export default class App extends Vue {}
+});
 </script>
 
 <style lang="scss" scoped>

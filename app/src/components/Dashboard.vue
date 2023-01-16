@@ -19,38 +19,20 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { Store } from "../types";
-
-import { apiURLs } from "../constants";
+import { defineComponent } from "@vue/composition-api";
 import fellows from "../examples/fellows.json";
-@Component({})
-export default class Dashboard extends Vue {
-  $store!: Store;
-  private apiURLs = apiURLs;
-
-  getFellowsOffline() {
-    this.$store.commit("setFellows", fellows);
-  }
+import { store } from "../store";
+export default defineComponent({
+  setup() {},
+  methods: {
+    getFellowsOffline() {
+      store.commit("setFellows", fellows);
+    },
+  },
   async created() {
-    try {
-      const response = await fetch(
-        `${this.apiURLs.api}${this.apiURLs.getAll}`,
-        {
-          method: "POST",
-        }
-      );
-      if (response.ok) {
-        const dataFromDB = await response.json();
-        this.$store.commit("setFellows", dataFromDB.fellows);
-      } else {
-        this.getFellowsOffline();
-      }
-    } catch (err) {
-      this.getFellowsOffline();
-    }
-  }
-}
+    this.getFellowsOffline();
+  },
+});
 </script>
 <style lang="scss" scoped>
 .router-link-active {

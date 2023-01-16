@@ -2,140 +2,119 @@
   <b-container fluid>
     <b-row class="add-btn my-4">
       <b-col cols="2">
-        <b-button @click="actionAdd = true">Добавить</b-button>
+        <b-button @click="actionAdd.value = true">Добавить</b-button>
       </b-col>
     </b-row>
     <sortable-table
-      :item="fellowTree"
+      :item="fellowTree.value"
       :columns="fellowTableColumns"
       :isRoot="true"
     ></sortable-table>
-    <b-modal v-model="actionAdd" hide-footer>
-      <add-fellow-form :chiefs="fellows" @add="addFellow"></add-fellow-form>
+    <b-modal v-model="actionAdd.value" hide-footer>
+      <add-fellow-form
+        :chiefs="fellows.value"
+        @add="addFellow"
+      ></add-fellow-form>
     </b-modal>
   </b-container>
 </template>
 
-<script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+<script setup lang="ts">
+import { ref, Ref } from "@vue/composition-api";
 import AddFellowForm from "./ModalForm.vue";
 import SortableTable from "./SortableTable.vue";
-import { apiURLs } from "../constants";
-import { Store, Node, Fellow, NewFellow } from "../types";
+import { store, storeEvents } from "../store";
+import { Node, Fellow, NewFellow } from "../types";
 
 type FellowNode = Node<Fellow | null>;
 
-@Component({
-  components: { AddFellowForm, SortableTable },
-})
-export default class FellowList extends Vue {
-  $store!: Store;
-  private apiURLs = apiURLs;
-  get fellows() {
-    return this.$store.state.fellows;
-  }
-  private persons: Map<number, FellowNode> = new Map();
-  private async postFellow(fellow: NewFellow) {
-    const response = await fetch(this.apiURLs.api + this.apiURLs.addOne, {
-      //все эти fetch надо будет в отдельный метод вынести...
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8",
-      },
-      body: JSON.stringify(fellow),
-    });
-    const payload = await response.json();
-    if (response.ok) {
-      return payload.id;
-    }
-    throw new Error(payload);
-  }
+const persons: Map<number, FellowNode> = new Map();
+const fellows = ref(store.state.fellows);
+let fellowTree: Ref<FellowNode> = ref({ person: null, subordinates: [] });
+let actionAdd = ref(false);
 
-  async addFellow(fellow: NewFellow) {
-    this.addToTree(fellow as Fellow);
-    this.actionAdd = false;
-    try {
-      const savedFellow = await this.postFellow(fellow);
-      const { id } = savedFellow;
-      fellow.id = id;
-    } catch (error) {
-      //...
-    }
-    this.$store.commit("addFellow", fellow);
-  }
-  private addToTree(
-    fellow: Fellow,
-    tree: FellowNode = this.fellowTree as FellowNode
-  ) {
-    const { chief: chiefId, id } = fellow;
-    const node: FellowNode = { person: fellow, subordinates: [] };
-    this.persons.set(id, node);
-    if (!chiefId) {
-      tree.subordinates.push(node);
-    } else {
-      const chief = this.persons.get(chiefId);
-      if (chief) {
-        chief.subordinates.push(node);
-      }
-    }
-    return node;
-  }
-  fellowTree: FellowNode = { person: null, subordinates: [] };
-  private buildFellowTree() {
-    //Я мог сделать это свойство вычисляемым, но тогда при добавлении сотрудника все дерево будет строиться заново
-    const { persons } = this;
-    const fellowTree: FellowNode = { person: null, subordinates: [] };
-    const orphans: Map<number, FellowNode[]> = new Map();
-    for (let fellow of this.fellows) {
-      const { chief: chiefId, id } = fellow;
-      const node = this.addToTree(fellow, fellowTree);
-      if (orphans.has(id)) {
-        const subordinates = orphans.get(id) as FellowNode[];
-        node.subordinates = subordinates;
-        orphans.delete(id);
-      }
-      if (!chiefId) {
-        continue;
-      }
-      const chief = persons.get(chiefId);
-      if (chief) {
-        continue;
-      }
-      if (!orphans.has(chiefId)) {
-        orphans.set(chiefId, [node]);
-      } else {
-        const siblings = orphans.get(chiefId) as FellowNode[];
-        siblings.push(node);
-      }
-    }
-    return fellowTree;
-  }
-  fellowTableColumns = [
-    { key: "name", title: "Имя", size: 0.4 },
-    { key: "age", title: "Возраст", size: 0.2 },
-    {
-      key: "sex",
-      title: "Пол",
-      size: 0.1,
-      transform: (s: Fellow["sex"]) => ["М", "Ж"][s],
-    },
-    { key: "phone", title: "Телефон", size: 0.3 },
-  ].map((col) => ({ ...col, sortingOrder: 1 }));
-  actionAdd = false;
-
-  private initTree() {
-    this.fellowTree = this.buildFellowTree();
-  }
-  @Watch("fellows.length")
-  init(value: number, oldValue: number) {
-    if (value && !oldValue) {
-      this.initTree();
-    }
-  }
-  created() {
-    this.initTree();
-  }
+function addFellow(fellow: NewFellow) {
+  addToTree(fellow as Fellow);
+  actionAdd.value = false;
+  store.commit("addFellow", fellow);
 }
+function addToTree(
+  fellow: Fellow,
+  tree: FellowNode = fellowTree.value as FellowNode
+) {
+  const { chief: chiefId, id } = fellow;
+  const node: FellowNode = { person: fellow, subordinates: [] };
+  persons.set(id, node);
+  if (!chiefId) {
+    tree.subordinates.push(node);
+  } else {
+    const chief = persons.get(chiefId);
+    if (chief) {
+      chief.subordinates.push(node);
+    }
+  }
+  return node;
+}
+function buildFellowTree() {
+  const fellowTree: FellowNode = { person: null, subordinates: [] };
+  const orphans: Map<number, FellowNode[]> = new Map();
+  for (let fellow of fellows.value) {
+    const { chief: chiefId, id } = fellow;
+    const node = addToTree(fellow, fellowTree);
+    if (orphans.has(id)) {
+      const subordinates = orphans.get(id) as FellowNode[];
+      node.subordinates = subordinates;
+      orphans.delete(id);
+    }
+    if (!chiefId) {
+      continue;
+    }
+    const chief = persons.get(chiefId);
+    if (chief) {
+      continue;
+    }
+    if (!orphans.has(chiefId)) {
+      orphans.set(chiefId, [node]);
+    } else {
+      const siblings = orphans.get(chiefId) as FellowNode[];
+      siblings.push(node);
+    }
+  }
+  return fellowTree;
+}
+function initTree() {
+  fellowTree.value = buildFellowTree();
+}
+store.subscribe((mutation) => {
+  if (mutation.type == storeEvents.setFellows) {
+    fellows.value = mutation.payload;
+    initTree();
+  }
+});
+
+const fellowTableColumns = [
+  { key: "name", title: "Имя", size: 0.4 },
+  { key: "age", title: "Возраст", size: 0.2 },
+  {
+    key: "sex",
+    title: "Пол",
+    size: 0.1,
+    transform: (s: Fellow["sex"]) => ["М", "Ж"][s],
+  },
+  { key: "phone", title: "Телефон", size: 0.3 },
+].map((col) => ({ ...col, sortingOrder: 1 }));
+
+initTree();
+
+/*
+defineComponent({
+  setup() {
+    watch(()=>fellows.value.length, (v)=>{
+      initTree()
+    })
+  },
+});
+*/
 </script>
 
 <style lang="scss" scoped>
