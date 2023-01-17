@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "@vue/composition-api";
+import { defineComponent } from "vue";
 import DB from "./utils/dataBase";
 import { store, storeEvents } from "./store";
 import constants from "./constants";

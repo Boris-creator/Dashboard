@@ -1,10 +1,10 @@
 <template>
   <div>
     <div class="bar-wrapper">
-      <Bar :options="chartOptions" :data="ageSlice.value" />
+      <Bar :options="chartOptions" :data="ageSlice" />
     </div>
     <div class="bar-wrapper">
-      <Bar :options="chartOptions" :data="sexSlice.value" />
+      <Bar :options="chartOptions" :data="sexSlice" />
     </div>
 
     <div class="bar-wrapper"></div>
@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "@vue/composition-api";
+import { computed } from "vue";
 import { store } from "../store";
 import { Bar } from "vue-chartjs";
 //import { BarChart } from "vue-chart-3";

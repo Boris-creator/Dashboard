@@ -1,7 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import Router from "vue-router";
-import Api from "@vue/composition-api";
 import { BootstrapVue } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -10,7 +9,6 @@ import List from "./components/FellowList.vue";
 import Stats from "./components/FellowsStats.vue";
 import { store } from "./store";
 
-Vue.use(Api);
 Vue.use(Vuex);
 Vue.use(BootstrapVue);
 Vue.use(Router);

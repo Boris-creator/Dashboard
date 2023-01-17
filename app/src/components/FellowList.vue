@@ -2,19 +2,19 @@
   <b-container fluid>
     <b-row class="add-btn my-4">
       <b-col cols="2">
-        <b-button @click="actionAdd.value = true">Добавить</b-button>
+        <b-button @click="actionAdd = true">Добавить</b-button>
       </b-col>
     </b-row>
     <sortable-table
-      :item="fellowTree.value"
+      :item="fellowTree"
       :columns="fellowTableColumns"
       :columnsSorting="columnsSorting"
       :isRoot="true"
       :sortBy="sortBy"
     ></sortable-table>
-    <b-modal v-model="actionAdd.value" hide-footer>
+    <b-modal v-model="actionAdd" hide-footer>
       <add-fellow-form
-        :chiefs="fellows.value"
+        :chiefs="fellows"
         @add="addFellow"
       ></add-fellow-form>
     </b-modal>
@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref } from "@vue/composition-api";
+import { ref, Ref } from "vue";
 import AddFellowForm from "./ModalForm.vue";
 import SortableTable from "./SortableTable.vue";
 import { store, storeEvents } from "../store";
