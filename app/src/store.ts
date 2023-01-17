@@ -9,6 +9,7 @@ Vue.use(Vuex);
 type state = { fellows: Fellow[] } & { [key: string]: any };
 export enum storeEvents {
   addFellow = "addFellow",
+  updateFellow = "updateFellow",
   setFellows = "setFellows",
   initialize = "initialize",
 }
@@ -36,6 +37,13 @@ const storeOptions = {
         state.autoIncrement++;
       }
       state.fellows.push(fellow as Fellow);
+      db.create(constants.IDBBase, constants.IDBStore, fellow);
+    },
+    updateFellow(state: state, fellow: Fellow) {
+      const existing = state.fellows.find(({ id }) => id == fellow.id);
+      if (existing) {
+        Object.assign(existing, fellow);
+      }
       db.create(constants.IDBBase, constants.IDBStore, fellow);
     },
     setFellows(state: state, fellows: Fellow[]) {

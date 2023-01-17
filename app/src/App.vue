@@ -31,7 +31,7 @@ export default defineComponent({
   async setup() {
     const db = new DB();
     const storedData = await db.findAll(constants.IDBBase, constants.IDBStore);
-    // Это для демонстрации, чтобы потом показать получение данных из базы
+    // Это для демонстрации, чтобы потом показать получение данных из базы. На самом деле достаточно один раз добавить.
     if (!storedData.length) {
       await db.bulkCreate(constants.IDBBase, constants.IDBStore, fellows);
     }

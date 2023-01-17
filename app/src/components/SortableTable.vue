@@ -23,7 +23,11 @@
         ></span>
       </div>
     </div>
-    <div class="table-row" v-if="item.person">
+    <div
+      class="table-row"
+      v-if="item.person"
+      @dblclick="editRow('edit', item)"
+    >
       <div
         class="table-cell"
         v-for="column of columns"
@@ -45,6 +49,7 @@
         :columns="columns"
         :columnsSorting="columnsSorting"
         :sortBy="sortByOwn"
+        @edit="editRow('edit', $event)"
       ></sortable-table>
     </div>
   </div>
@@ -54,8 +59,16 @@
  Таблицу решил реализовать своим компонентом, это должно дать больше свободы стилизации, управления.
  Но возможно это не лучшее решение, и следовало использовать b-table с нормальной сортировкой из коробки.
 */
-import { computed, ref, Ref, defineProps, withDefaults } from "vue";
-import { Component, watch } from "vue";
+import SortableTable from "./SortableTable.vue";
+import {
+  computed,
+  ref,
+  Ref,
+  defineProps,
+  withDefaults,
+  defineEmits,
+  watch,
+} from "vue";
 import { Fellow, Node, Sort } from "../types";
 
 type props = {
@@ -74,12 +87,13 @@ const props = withDefaults(defineProps<props>(), {
   sortBy: () => ref({ key: "name", direction: 1 }),
   isRoot: false,
 });
+const editRow = defineEmits<{ (e: "edit", value: Node<Fellow>): void }>();
 
 const showHead = ref(props.isRoot);
 const sortByOwn = ref({ key: "name", direction: 1 }) as props["sortBy"];
 const columnsSorting = ref(props.columnsSorting);
 const sortedItems = computed(() => {
-  const { key, direction } = sortByOwn.value
+  const { key, direction } = sortByOwn.value;
   return props.item.subordinates.sort(({ person: p1 }, { person: p2 }) => {
     const order = p1[key] > p2[key] ? 1 : p1[key] == p2[key] ? 0 : -1;
     return order * direction;

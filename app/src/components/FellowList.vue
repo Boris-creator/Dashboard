@@ -11,11 +11,16 @@
       :columnsSorting="columnsSorting"
       :isRoot="true"
       :sortBy="sortBy"
+      @edit="editRow"
     ></sortable-table>
     <b-modal v-model="actionAdd" hide-footer>
+      <add-fellow-form :chiefs="fellows" @add="addFellow"></add-fellow-form>
+    </b-modal>
+    <b-modal v-model="actionEdit" hide-footer>
       <add-fellow-form
         :chiefs="fellows"
-        @add="addFellow"
+        @add="editFellow"
+        :node="fellowToEdit"
       ></add-fellow-form>
     </b-modal>
   </b-container>
@@ -34,11 +39,30 @@ const persons: Map<number, FellowNode> = new Map();
 const fellows = ref(store.state.fellows);
 let fellowTree: Ref<FellowNode> = ref({ person: null, subordinates: [] });
 let actionAdd = ref(false);
+let actionEdit = ref(false);
+const fellowToEdit: Ref<FellowNode | null> = ref(null);
 
 function addFellow(fellow: NewFellow) {
   addToTree(fellow as Fellow);
   actionAdd.value = false;
   store.commit("addFellow", fellow);
+}
+function editFellow(fellowUpdates: Fellow) {
+  const fellow = persons.get(fellowUpdates.id) as FellowNode;
+  const person = fellow.person as Fellow;
+  let povyshenie = false; // Да что вы знаете про именование переменных...
+  if (person.chief !== fellowUpdates.chief) {
+    povyshenie = true;
+  }
+  Object.assign(person, fellowUpdates);
+  povyshenie && updateTree();
+  actionEdit.value = false;
+  store.commit(storeEvents.updateFellow, person);
+}
+
+function editRow(fellowNode: FellowNode) {
+  fellowToEdit.value = fellowNode;
+  actionEdit.value = true;
 }
 function addToTree(
   fellow: Fellow,
@@ -84,6 +108,10 @@ function buildFellowTree() {
   }
   return fellowTree;
 }
+function updateTree() {
+  persons.clear();
+  initTree(); //Надо бы конечно только часть дерева перестроить...
+}
 function initTree() {
   fellowTree.value = buildFellowTree();
 }
@@ -124,7 +152,6 @@ const columnsSorting = ref(
   Object.fromEntries(columns.map((col) => [col.key, -1]))
 );
 initTree();
-
 </script>
 
 <style lang="scss" scoped>
