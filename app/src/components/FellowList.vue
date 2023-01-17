@@ -125,15 +125,6 @@ const columnsSorting = ref(
 );
 initTree();
 
-/*
-defineComponent({
-  setup() {
-    watch(()=>fellows.value.length, (v)=>{
-      initTree()
-    })
-  },
-});
-*/
 </script>
 
 <style lang="scss" scoped>

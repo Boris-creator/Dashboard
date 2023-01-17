@@ -7,9 +7,7 @@
       <Bar :options="chartOptions" :data="sexSlice.value" />
     </div>
 
-    <div class="bar-wrapper">
-      <!--<BarChart :options="chartOptions" :chartData="ageSlice.value" />-->
-    </div>
+    <div class="bar-wrapper"></div>
   </div>
 </template>
 

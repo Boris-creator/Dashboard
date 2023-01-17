@@ -1,6 +1,22 @@
 <template>
-  <div id="app">
-    <dashboard></dashboard>
+  <div class="app-wrapper">
+    <b-container fluid="lg" class="h-100">
+      <b-row class="wrapper h-100">
+        <b-col cols="3" class="sidebar">
+          <b-container>
+            <b-row class="mt-5">
+              <b-button to="/list">Список сотрудников</b-button>
+            </b-row>
+            <b-row class="mt-5">
+              <b-button to="/stats">Статистика</b-button>
+            </b-row>
+          </b-container>
+        </b-col>
+        <b-col cols="9">
+          <router-view> </router-view>
+        </b-col>
+      </b-row>
+    </b-container>
   </div>
 </template>
 
@@ -9,11 +25,9 @@ import { defineComponent } from "@vue/composition-api";
 import DB from "./utils/dataBase";
 import { store, storeEvents } from "./store";
 import constants from "./constants";
-import Dashboard from "./components/Dashboard.vue";
 import fellows from "./examples/fellows.json";
 
 export default defineComponent({
-  components: { Dashboard },
   async setup() {
     const db = new DB();
     const storedData = await db.findAll(constants.IDBBase, constants.IDBStore);
@@ -27,7 +41,14 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-#app {
+.app-wrapper {
   height: 100vh;
+}
+.router-link-active {
+  opacity: 0.6;
+  cursor: default;
+}
+.sidebar {
+  background: lightsteelblue;
 }
 </style>

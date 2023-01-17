@@ -24,15 +24,11 @@ const router = new Router({
     },
     {
       path: "/list",
-      components: {
-        main: List,
-      },
+      component: List,
     },
     {
       path: "/stats",
-      components: {
-        main: Stats,
-      },
+      component: Stats,
     },
   ],
 });
