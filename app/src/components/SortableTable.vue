@@ -1,23 +1,28 @@
 <template>
   <div
-    @dblclick.stop="sortedItems.value.length && (showHead = !showHead)"
+    @dblclick.stop="
+      sortedItems.value.length && (showHead.value = !showHead.value)
+    "
     class="table"
     ref="table-body"
   >
-    <div v-if="showHead" class="table-row table-head">
+    <div v-if="showHead.value" class="table-row table-head">
       <div
         class="table-cell"
-        v-for="column of columns"
+        v-for="column of columns.value"
         :key="column.key"
         :style="{ width: column.size * 100 + '%' }"
       >
-        <span @click="sortByOwn.key = column.key">{{ column.title }}</span>
+        <span @click="sortByOwn.value.key = column.key">{{
+          column.title
+        }}</span>
         <span
           @click="
-            sortByOwn.key = column.key;
-            sortByOwn.direction *= -1;
+            sortByOwn.value.key = column.key;
+            sortByOwn.value.direction *= -1;
+            columnsSorting.value[column.key] *= -1;
           "
-          v-html="column.sortingOrder + 1 ? '&uarr;' : '&darr;'"
+          v-html="columnsSorting.value[column.key] == 1 ? '&uarr;' : '&darr;'"
           class="sort-dir"
         ></span>
       </div>
@@ -25,7 +30,7 @@
     <div class="table-row" v-if="item.person">
       <div
         class="table-cell"
-        v-for="column of columns"
+        v-for="column of columns.value"
         :key="column.key"
         :style="{ width: column.size * 100 + '%' }"
       >
@@ -42,6 +47,7 @@
         :key="node.person.id"
         :item="node"
         :columns="columns"
+        :columnsSorting="columnsSorting"
         :sortBy="sortByOwn"
       ></sortable-table>
     </div>
@@ -52,8 +58,8 @@
  Таблицу решил реализовать своим компонентом, это должно дать больше свободы стилизации, управления.
  Но возможно это не лучшее решение, и следовало использовать b-table с нормальной сортировкой из коробки.
 */
-import { defineComponent, computed } from "@vue/composition-api";
-import { Component } from "vue";
+import { defineComponent, computed, ref, Ref } from "@vue/composition-api";
+import { Component, watch } from "vue";
 import Table from "./SortableTable.vue";
 import { Fellow, Node, Sort } from "../types";
 
@@ -66,9 +72,9 @@ type props = {
     title: string;
     size: number;
     transform?: Function;
-    sortingOrder: Sort<any>["direction"];
   }[];
-  sortBy: Sort<Fellow>;
+  columnsSorting: { [key: string]: Sort<any>["direction"] };
+  sortBy: Ref<Sort<Fellow>>;
 };
 export default defineComponent({
   name: "SortableTable",
@@ -79,13 +85,17 @@ export default defineComponent({
       required: true,
     },
     columns: {
-      type: Array,
+      type: Object,
+      required: true,
+    },
+    columnsSorting: {
+      type: Object,
       required: true,
     },
     sortBy: {
       type: Object,
       default() {
-        return { key: "name", direction: 1 };
+        return ref({ key: "name", direction: 1 });
       },
     },
     isRoot: {
@@ -94,20 +104,41 @@ export default defineComponent({
     },
   },
   setup(props: props) {
-    const showHead: boolean = props.isRoot;
-    const sortByOwn: Sort<typeof props.item.person> = {
-      key: "name",
-      direction: 1,
-    };
-    const columnSorting: { [key: string]: Sort<any>["direction"] } = {};
+    const showHead = ref(props.isRoot);
+    const sortByOwn = ref({ key: "name", direction: 1 });
+    const columnsSorting = ref(props.columnsSorting.value);
     const sortedItems = computed(() => {
-      const { key, direction } = sortByOwn;
+      const { key, direction } = sortByOwn.value;
       return props.item.subordinates.sort(({ person: p1 }, { person: p2 }) => {
         const order = p1[key] > p2[key] ? 1 : p1[key] == p2[key] ? 0 : -1;
         return order * direction;
       });
     });
-    return { showHead, columnSorting, sortedItems, sortByOwn };
+    watch(
+      () => props.sortBy.value.key,
+      (v) => {
+        sortByOwn.value.key = v;
+      }
+    );
+    watch(
+      () => props.sortBy.value.direction,
+      (v) => {
+        sortByOwn.value.direction = v;
+      }
+    );
+    watch(
+      () => JSON.stringify(props.columnsSorting.value),
+      (v) => {
+        columnsSorting.value = JSON.parse(v);
+      }
+    );
+    return {
+      showHead,
+      sortedItems,
+      sortByOwn,
+      columns: props.columns,
+      columnsSorting,
+    };
   },
 });
 </script>

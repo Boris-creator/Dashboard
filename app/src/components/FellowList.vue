@@ -8,7 +8,9 @@
     <sortable-table
       :item="fellowTree.value"
       :columns="fellowTableColumns"
+      :columnsSorting="columnsSorting"
       :isRoot="true"
+      :sortBy="sortBy"
     ></sortable-table>
     <b-modal v-model="actionAdd.value" hide-footer>
       <add-fellow-form
@@ -85,14 +87,27 @@ function buildFellowTree() {
 function initTree() {
   fellowTree.value = buildFellowTree();
 }
-store.subscribe((mutation) => {
-  if (mutation.type == storeEvents.setFellows) {
-    fellows.value = mutation.payload;
+async function waitForData() {
+  return new Promise((res) => {
+    const data = store.state.fellows;
+    if (data.length) {
+      res(data);
+    } else {
+      requestAnimationFrame(async () => {
+        res(await waitForData());
+      });
+    }
+  });
+}
+store.subscribe(async (mutation) => {
+  if (mutation.type == storeEvents.initialize) {
+    //fellows.value = mutation.payload; // Не все так просто, потому что мутация асинхронная
+    fellows.value = (await waitForData()) as Fellow[];
     initTree();
   }
 });
 
-const fellowTableColumns = [
+const columns = [
   { key: "name", title: "Имя", size: 0.4 },
   { key: "age", title: "Возраст", size: 0.2 },
   {
@@ -102,8 +117,12 @@ const fellowTableColumns = [
     transform: (s: Fellow["sex"]) => ["М", "Ж"][s],
   },
   { key: "phone", title: "Телефон", size: 0.3 },
-].map((col) => ({ ...col, sortingOrder: 1 }));
-
+];
+const fellowTableColumns = ref(columns);
+const sortBy = ref({ key: "name", direction: 1 });
+const columnsSorting = ref(
+  Object.fromEntries(columns.map((col) => [col.key, -1]))
+);
 initTree();
 
 /*

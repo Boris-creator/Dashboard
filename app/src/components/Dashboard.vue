@@ -20,19 +20,7 @@
 
 <script lang="ts">
 import { defineComponent } from "@vue/composition-api";
-import fellows from "../examples/fellows.json";
-import { store } from "../store";
-export default defineComponent({
-  setup() {},
-  methods: {
-    getFellowsOffline() {
-      store.commit("setFellows", fellows);
-    },
-  },
-  async created() {
-    this.getFellowsOffline();
-  },
-});
+export default defineComponent({});
 </script>
 <style lang="scss" scoped>
 .router-link-active {
