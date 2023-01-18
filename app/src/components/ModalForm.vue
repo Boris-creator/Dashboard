@@ -3,7 +3,14 @@
     <b-container>
       <b-row>
         <b-col>
-          <h2>Добавление сотрудника</h2>
+          <h2>
+            {{
+              {
+                create: "Добавление сотрудника",
+                update: "Редактирование данных",
+              }[destination]
+            }}
+          </h2>
         </b-col>
       </b-row>
       <b-row>
@@ -212,6 +219,7 @@ function addFellow() {
   } as NewFellow;
   emit("add", output);
 }
+const destination = props.node ? "update" : "create";
 </script>
 
 <style></style>

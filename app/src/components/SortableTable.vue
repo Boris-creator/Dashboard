@@ -1,33 +1,36 @@
 <template>
   <div
-    @dblclick.stop="sortedItems.length && (showHead = !showHead)"
-    class="table"
+    @click.stop="sortedItems.length && (showHead = !showHead)"
+    class="my-table mt-2 border-3"
+    :class="{ 'border-start': showHead }"
     ref="table-body"
   >
-    <div v-if="showHead" class="table-row table-head">
-      <div
-        class="table-cell"
-        v-for="column of columns"
-        :key="column.key"
-        :style="{ width: column.size * 100 + '%' }"
-      >
-        <span @click="sortByOwn.key = column.key">{{ column.title }}</span>
-        <span
-          @click="
-            sortByOwn.key = column.key;
-            sortByOwn.direction *= -1;
-            columnsSorting[column.key] *= -1;
-          "
-          v-html="columnsSorting[column.key] == 1 ? '&uarr;' : '&darr;'"
-          class="sort-dir"
-        ></span>
+    <div v-if="showHead" class="table-header">
+      <div class="table-row table-head">
+        <div
+          class="table-cell"
+          v-for="column of columns"
+          :key="column.key"
+          :style="{ width: column.size * 100 + '%' }"
+        >
+          <span @click="sortByOwn.key = column.key">{{ column.title }}</span>
+          <span
+            @click.stop="
+              sortByOwn.key = column.key;
+              sortByOwn.direction *= -1;
+              columnsSorting[column.key] *= -1;
+            "
+            :class="{ 'sort-dir': 1, up: columnsSorting[column.key] == 1 }"
+          ></span>
+        </div>
+      </div>
+      <div class="table-manager" v-if="!isRoot">
+        <b-button size="sm" variant="light" @click="hide = !hide">{{
+          hide ? "Развернуть" : "Свернуть"
+        }}</b-button>
       </div>
     </div>
-    <div
-      class="table-row"
-      v-if="item.person"
-      @dblclick="editRow('edit', item)"
-    >
+    <div class="table-row" v-if="item.person" @dblclick="editRow('edit', item)">
       <div
         class="table-cell"
         v-for="column of columns"
@@ -41,16 +44,24 @@
         }}
       </div>
     </div>
-    <div class="child-table" v-if="sortedItems.length">
-      <sortable-table
-        v-for="node of sortedItems"
-        :key="node.person.id"
-        :item="node"
-        :columns="columns"
-        :columnsSorting="columnsSorting"
-        :sortBy="sortByOwn"
-        @edit="editRow('edit', $event)"
-      ></sortable-table>
+    <div
+      class="child-table"
+      :class="{ collapsed: hide }"
+      v-if="sortedItems.length"
+    >
+      <Transition>
+        <div v-show="!hide">
+          <sortable-table
+            v-for="node of sortedItems"
+            :key="node.person.id"
+            :item="node"
+            :columns="columns"
+            :columnsSorting="columnsSorting"
+            :sortBy="sortByOwn"
+            @edit="editRow('edit', $event)"
+          ></sortable-table>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -91,7 +102,7 @@ const editRow = defineEmits<{ (e: "edit", value: Node<Fellow>): void }>();
 
 const showHead = ref(props.isRoot);
 const sortByOwn = ref({ key: "name", direction: 1 }) as props["sortBy"];
-const columnsSorting = ref(props.columnsSorting);
+const columnsSorting = ref({ ...props.columnsSorting });
 const sortedItems = computed(() => {
   const { key, direction } = sortByOwn.value;
   return props.item.subordinates.sort(({ person: p1 }, { person: p2 }) => {
@@ -117,6 +128,8 @@ watch(
     columnsSorting.value = JSON.parse(v);
   }
 );
+
+const hide = ref(false);
 </script>
 
 <style lang="scss" scoped>
@@ -136,6 +149,15 @@ watch(
     }
     .sort-dir {
       display: none;
+      padding: 1em;
+      &::after {
+        content: "\25BC";
+      }
+      &.up {
+        &::after {
+          content: "\25B2";
+        }
+      }
     }
     &:hover {
       .sort-dir {
@@ -144,8 +166,16 @@ watch(
     }
   }
 }
+.table-header {
+  .table-manager {
+    display: flex;
+  }
+}
 .child-table {
   margin-left: 1vw;
   padding: 0.2em 0 0 0;
+  .collapsed {
+    border-bottom: 0.1em solid grey;
+  }
 }
 </style>
