@@ -78,7 +78,9 @@
       </b-row>
       <b-row align-h="end"
         ><b-col cols="6">
-          <b-button @click.stop="submit" class="w-100">Сохранить</b-button>
+          <b-button @click.stop="submit" :disabled="!dataChanged" class="w-100"
+            >Сохранить</b-button
+          >
         </b-col></b-row
       >
     </b-container>
@@ -87,6 +89,7 @@
 
 <script setup lang="ts">
 import { computed, ref, Ref, defineProps, defineEmits } from "vue";
+import * as _ from "lodash";
 import * as zod from "zod";
 import { Fellow, NewFellow, Node } from "../types";
 
@@ -114,7 +117,7 @@ const chiefsUnavailableFinder = (node: Node<Fellow>) => {
 };
 const chiefsUnAvailable = computed(() => {
   if (!props.node) {
-    return props.chiefs.map(({ id }) => id);
+    return [];
   }
   return chiefsUnavailableFinder(props.node);
 });
@@ -197,6 +200,17 @@ function getFieldValidity(value: any, schema: zod.Schema) {
     success: success,
   };
 }
+
+const destination = props.node ? "update" : "create";
+const dataChanged = computed(() => {
+  const data = props.node;
+  if (!data) {
+    return true;
+  }
+  return !_.isEqual(data.person, fellow.value);
+  //return JSON.stringify(data.person) != JSON.stringify(fellow.value);
+});
+
 function submit() {
   const fields = ["name", "sex", "age", "phone"] as const;
   for (let key of fields) {
@@ -219,7 +233,6 @@ function addFellow() {
   } as NewFellow;
   emit("add", output);
 }
-const destination = props.node ? "update" : "create";
 </script>
 
 <style></style>

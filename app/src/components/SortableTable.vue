@@ -1,6 +1,6 @@
 <template>
   <div
-    @click.stop="sortedItems.length && (showHead = !showHead)"
+    @contextmenu.prevent.stop="sortedItems.length && (showHead = !showHead)"
     class="my-table mt-2 border-3"
     :class="{ 'border-start': showHead }"
     ref="table-body"
