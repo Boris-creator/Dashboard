@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import DB from "./utils/dataBase";
+import DB from "./utils/database";
 import constants from "./constants";
 import { Fellow, NewFellow } from "./types";
 

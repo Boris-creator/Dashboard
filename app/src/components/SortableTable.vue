@@ -1,8 +1,10 @@
 <template>
   <div
-    @contextmenu.prevent.stop="sortedItems.length && (showHead = !showHead)"
-    class="my-table mt-2 border-3"
-    :class="{ 'border-start': showHead }"
+    @contextmenu.prevent.stop="
+      sortedItems.length && !isRoot && (showHead = !showHead)
+    "
+    class="my-table mt-2 border-3 border-start"
+    :class="{ 'border-dark': showHead }"
     ref="table-body"
   >
     <div v-if="showHead" class="table-header">
@@ -11,22 +13,21 @@
           class="table-cell"
           v-for="column of columns"
           :key="column.key"
+          :class="{ active: column.key == sortByOwn.key }"
           :style="{ width: column.size * 100 + '%' }"
+          @click="sortByOwn.key = column.key"
         >
-          <span @click="sortByOwn.key = column.key">{{ column.title }}</span>
+          <span>{{ $t(column.title) }}</span>
           <span
-            @click.stop="
-              sortByOwn.key = column.key;
-              sortByOwn.direction *= -1;
-              columnsSorting[column.key] *= -1;
-            "
+            v-show="column.key == sortByOwn.key"
+            @click="sortByOwn.direction *= -1"
             :class="{ 'sort-dir': 1, up: columnsSorting[column.key] == 1 }"
           ></span>
         </div>
       </div>
       <div class="table-manager" v-if="!isRoot">
         <b-button size="sm" variant="light" @click="hide = !hide">{{
-          hide ? "Развернуть" : "Свернуть"
+          $t(hide ? "Развернуть" : "Свернуть")
         }}</b-button>
       </div>
     </div>
@@ -112,14 +113,21 @@ const sortedItems = computed(() => {
 });
 watch(
   () => props.sortBy.key,
-  (v) => {
-    sortByOwn.value.key = v;
+  (key) => {
+    sortByOwn.value.key = key;
   }
 );
 watch(
   () => props.sortBy.direction,
-  (v) => {
-    sortByOwn.value.direction = v;
+  (dir) => {
+    sortByOwn.value.direction = dir;
+  }
+);
+watch(
+  () => sortByOwn.value.direction,
+  (dir) => {
+    const value = dir as 1 | -1;
+    columnsSorting.value[sortByOwn.value.key] = value;
   }
 );
 watch(
@@ -144,8 +152,10 @@ const hide = ref(false);
 .table-head {
   .table-cell {
     font-weight: bolder;
-    span {
-      cursor: pointer;
+    cursor: pointer;
+    &.active {
+      color: white;
+      background: grey;
     }
     .sort-dir {
       display: none;

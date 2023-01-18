@@ -3,19 +3,18 @@
     <div class="bar-wrapper">
       <Bar :options="chartOptions" :data="ageSlice" />
     </div>
-    <div class="bar-wrapper">
-      <Bar :options="chartOptions" :data="sexSlice" />
+    <div class="pie-wrapper">
+      <Pie :options="chartOptions" :data="sexSlice" />
     </div>
-
-    <div class="bar-wrapper"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n-composable";
 import { store } from "../store";
-import { Bar } from "vue-chartjs";
-//import { BarChart } from "vue-chart-3";
+import { Bar, Pie } from "vue-chartjs";
+import * as _ from "lodash";
 import {
   Chart as ChartJS,
   Title,
@@ -24,7 +23,9 @@ import {
   BarElement,
   CategoryScale,
   LinearScale,
+  ArcElement,
 } from "chart.js";
+const { t } = useI18n();
 
 ChartJS.register(
   Title,
@@ -32,7 +33,8 @@ ChartJS.register(
   Legend,
   BarElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
+  ArcElement
 );
 
 function getSlice<T>(
@@ -64,30 +66,32 @@ const chartOptions = {
   },
 };
 
-const labels = {
-  age: ["Призывной", "Предпенсионный", "пенсионный"],
-  sex: ["Мужчины", "Женщины"],
-};
+const labels = computed(() => ({
+  age: ["призывной", "предпенсионный", "пенсионный"].map((s) =>
+    _.startCase(t(s).toString())
+  ),
+  sex: ["Мужчины", "Женщины"].map((s) => _.startCase(t(s).toString())),
+}));
 
 const ageSlice = computed(() => {
-  const statsAge = getSlice(persons.value, labels.age, ({ age }) => {
+  const statsAge = getSlice(persons.value, labels.value.age, ({ age }) => {
     const diapasons = [
       [18, 25],
       [26, 60],
       [60, Infinity],
     ];
-    return labels.age[
+    return labels.value.age[
       diapasons.findIndex(
         ([min, max]) => Math.max(Math.min(age, max), min) == age
       )
     ];
   });
   return {
-    labels: labels.age,
+    labels: labels.value.age,
     datasets: [
       {
         data: statsAge,
-        label: "Возраста сотрудников",
+        label: t("Возраста сотрудников").toString(),
         backgroundColor: "darkgrey",
       },
     ],
@@ -96,16 +100,16 @@ const ageSlice = computed(() => {
 const sexSlice = computed(() => {
   const statsSex = getSlice(
     persons.value,
-    labels.sex,
-    ({ sex }) => labels.sex[sex],
+    labels.value.sex,
+    ({ sex }) => labels.value.sex[sex],
     "percent"
   );
   return {
-    labels: labels.sex,
+    labels: labels.value.sex,
     datasets: [
       {
         data: statsSex,
-        label: "Пол сотрудников, %",
+        label: t("Пол сотрудников, %").toString(),
         backgroundColor: ["lightblue", "lightcoral"],
       },
     ],
@@ -116,5 +120,10 @@ const sexSlice = computed(() => {
 <style lang="scss" scoped>
 .bar-wrapper {
   width: 50vw;
+  margin: 0 auto;
+}
+.pie-wrapper {
+  width: 30vw;
+  margin: 0 auto;
 }
 </style>

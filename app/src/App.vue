@@ -4,11 +4,20 @@
       <b-row class="wrapper h-100">
         <b-col cols="3" class="sidebar">
           <b-container>
-            <b-row class="mt-5">
-              <b-button to="/list">Список сотрудников</b-button>
+            <b-row>
+              <b-select
+                v-model="locale"
+                :options="[
+                  { value: 'en', text: 'en' },
+                  { value: 'ru', text: 'ru' },
+                ]"
+              ></b-select>
             </b-row>
             <b-row class="mt-5">
-              <b-button to="/stats">Статистика</b-button>
+              <b-button to="/list">{{ $t("Список сотрудников") }}</b-button>
+            </b-row>
+            <b-row class="mt-5">
+              <b-button to="/stats">{{ $t("Статистика") }}</b-button>
             </b-row>
           </b-container>
         </b-col>
@@ -20,24 +29,24 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-import DB from "./utils/dataBase";
+<script setup lang="ts">
+import { useI18n } from "vue-i18n-composable";
+import DB from "./utils/database";
 import { store, storeEvents } from "./store";
 import constants from "./constants";
 import fellows from "./examples/fellows.json";
+const { t, locale } = useI18n();
 
-export default defineComponent({
-  async setup() {
-    const db = new DB();
-    const storedData = await db.findAll(constants.IDBBase, constants.IDBStore);
-    // Это для демонстрации, чтобы потом показать получение данных из базы. На самом деле достаточно один раз добавить.
-    if (!storedData.length) {
-      await db.bulkCreate(constants.IDBBase, constants.IDBStore, fellows);
-    }
-    store.commit(storeEvents.initialize);
-  },
-});
+async function setup() {
+  const db = new DB();
+  const storedData = await db.findAll(constants.IDBBase, constants.IDBStore);
+  // Это для демонстрации, чтобы потом показать получение данных из базы. На самом деле достаточно один раз добавить.
+  if (!storedData.length) {
+    await db.bulkCreate(constants.IDBBase, constants.IDBStore, fellows);
+  }
+  store.commit(storeEvents.initialize);
+}
+setup();
 </script>
 
 <style lang="scss" scoped>

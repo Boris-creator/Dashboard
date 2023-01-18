@@ -6,8 +6,8 @@
           <h2>
             {{
               {
-                create: "Добавление сотрудника",
-                update: "Редактирование данных",
+                create: $t("Добавление сотрудника"),
+                update: $t("Редактирование данных"),
               }[destination]
             }}
           </h2>
@@ -16,8 +16,8 @@
       <b-row>
         <b-col>
           <b-form-group
-            label="Имя"
-            :invalid-feedback="fieldsValidity.name.error"
+            :label="$t('Имя')"
+            :invalid-feedback="$t(fieldsValidity.name.error)"
           >
             <b-form-input
               v-model.trim="fellow.name"
@@ -30,8 +30,8 @@
             ></b-form-input>
           </b-form-group>
           <b-form-group
-            label="Возраст"
-            :invalid-feedback="fieldsValidity.age.error"
+            :label="$t('Возраст')"
+            :invalid-feedback="$t(fieldsValidity.age.error)"
           >
             <b-form-input
               v-model.number="fellow.age"
@@ -44,8 +44,8 @@
             ></b-form-input>
           </b-form-group>
           <b-form-group
-            label="Телефон"
-            :invalid-feedback="fieldsValidity.phone.error"
+            :label="$t('Телефон')"
+            :invalid-feedback="$t(fieldsValidity.phone.error)"
           >
             <b-form-input
               v-model.trim="fellow.phone"
@@ -78,8 +78,11 @@
       </b-row>
       <b-row align-h="end"
         ><b-col cols="6">
-          <b-button @click.stop="submit" :disabled="!dataChanged" class="w-100"
-            >Сохранить</b-button
+          <b-button
+            @mousedown="submit"
+            :disabled="!dataChanged"
+            class="w-100"
+            >{{ $t("Сохранить") }}</b-button
           >
         </b-col></b-row
       >
@@ -88,12 +91,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, Ref, defineProps, defineEmits } from "vue";
+import { computed, ref, defineProps, defineEmits } from "vue";
+import { useI18n } from "vue-i18n-composable";
 import * as _ from "lodash";
 import * as zod from "zod";
 import { Fellow, NewFellow, Node } from "../types";
+const { t } = useI18n();
 
-const props = defineProps<{ chiefs: Fellow[]; node?: Node<Fellow> }>();
+const props = defineProps<{ chiefs: Fellow[]; node?: Node<Fellow> | null }>();
 const emit = defineEmits<{ (e: "add", value: NewFellow): void }>();
 
 const fellow = ref(
@@ -126,9 +131,11 @@ const sexOptions: SelectOptions = [
     { value: null, text: "Пол" },
     { value: 0, text: "Мужской" },
     { value: 1, text: "Женский" },
-  ],
+  ].map(({ value, text }) => {
+    return { value, text: t(text).toString() };
+  }),
   chiefOptions: SelectOptions = [
-    { value: null, text: "Выберите начальника" },
+    { value: null, text: t("Выберите начальника").toString() },
     ...props.chiefs.map(({ name, id }) => ({
       text: name,
       value: id,

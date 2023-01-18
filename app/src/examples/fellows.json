@@ -1,7 +1,42 @@
 [
-  { "name": "Boris", "sex": 0, "phone": "1034411123", "age": 27, "id": 1, "chief": null },
-  { "name": "Ann", "sex": 1, "phone": "1034411723", "age": 40, "id": 2, "chief": 1 },
-  { "name": "Peter", "sex": 0, "phone": "1034411123", "age": 19, "id": 3, "chief": 2 },
-  { "name": "Bob", "sex": 0, "phone": "1034411123", "age": 32, "id": 5, "chief": 2 },
-  { "name": "Alexander", "sex": 0, "phone": "1034411123", "age": 59, "id": 4, "chief": 1 }
+  {
+    "name": "Boris",
+    "sex": 0,
+    "phone": "1034411123",
+    "age": 26,
+    "id": 1,
+    "chief": null
+  },
+  {
+    "name": "Ann",
+    "sex": 1,
+    "phone": "1034411723",
+    "age": 40,
+    "id": 2,
+    "chief": 4
+  },
+  {
+    "name": "Maksim",
+    "sex": 0,
+    "phone": "1034411123",
+    "age": 79,
+    "id": 3,
+    "chief": 1
+  },
+  {
+    "name": "Dmitry",
+    "sex": 0,
+    "phone": "1034411123",
+    "age": 28,
+    "id": 5,
+    "chief": 1
+  },
+  {
+    "name": "Garri",
+    "sex": 0,
+    "phone": "1034411123",
+    "age": 59,
+    "id": 4,
+    "chief": 1
+  }
 ]
