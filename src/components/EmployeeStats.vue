@@ -56,7 +56,7 @@ function getSlice<T>(
   }
   return categories.map((c) => result[c]);
 }
-const persons = computed(() => store.state.fellows);
+const persons = computed(() => store.state.employees);
 const chartOptions = {
   responsive: true,
   y: {

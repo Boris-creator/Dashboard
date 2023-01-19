@@ -36,7 +36,7 @@ import { useI18n } from "vue-i18n-composable";
 import DB from "./utils/database";
 import { store, storeEvents } from "./store";
 import constants from "./constants";
-import fellows from "./examples/fellows.json";
+import employees from "./examples/employees.json";
 const { t, locale } = useI18n();
 
 async function setup() {
@@ -44,7 +44,7 @@ async function setup() {
   const storedData = await db.findAll(constants.IDBBase, constants.IDBStore);
   // Это для демонстрации, чтобы потом показать получение данных из базы. На самом деле достаточно один раз добавить.
   if (!storedData.length) {
-    await db.bulkCreate(constants.IDBBase, constants.IDBStore, fellows);
+    await db.bulkCreate(constants.IDBBase, constants.IDBStore, employees);
   }
   store.dispatch(storeEvents.initialize);
 }

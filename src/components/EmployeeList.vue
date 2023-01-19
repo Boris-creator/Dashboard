@@ -7,28 +7,31 @@
       <b-col>
         <b-button
           @click="exportData"
-          :disabled="!fellows.length"
+          :disabled="!employees.length"
           variant="outline-primary"
           >{{ $t("Экспорт данных") }}</b-button
         >
       </b-col>
     </b-row>
     <sortable-table
-      :item="fellowTree"
-      :columns="fellowTableColumns"
+      :item="employeeTree"
+      :columns="employeeTableColumns"
       :columnsSorting="columnsSorting"
       :isRoot="true"
       @edit="editRow"
     ></sortable-table>
     <b-modal v-model="actionAdd" hide-footer>
-      <add-fellow-form :chiefs="fellows" @add="addFellow"></add-fellow-form>
+      <add-employee-form
+        :chiefs="employees"
+        @add="addEmployee"
+      ></add-employee-form>
     </b-modal>
     <b-modal v-model="actionEdit" hide-footer>
-      <add-fellow-form
-        :chiefs="fellows"
-        @add="editFellow"
-        :node="fellowToEdit"
-      ></add-fellow-form>
+      <add-employee-form
+        :chiefs="employees"
+        @add="editEmployee"
+        :node="employeeToEdit"
+      ></add-employee-form>
     </b-modal>
   </b-container>
 </template>
@@ -36,55 +39,55 @@
 <script setup lang="ts">
 import { ref, Ref, watch } from "vue";
 import { useI18n } from "vue-i18n-composable";
-import AddFellowForm from "./ModalForm.vue";
+import AddEmployeeForm from "./ModalForm.vue";
 import SortableTable from "./SortableTable.vue";
 import FileHelper from "../utils/file-helper";
 import { store, storeEvents } from "../store";
-import { Node, Fellow, NewFellow, Sort } from "../types";
+import { Node, Employee, NewEmployee, Sort } from "../types";
 
 const { t } = useI18n();
 
-type FellowNode = Node<Fellow | null>;
+type EmployeeNode = Node<Employee | null>;
 
-const persons: Map<number, FellowNode> = new Map();
-const fellows = ref(store.state.fellows);
-const fellowTree: Ref<FellowNode> = ref({ person: null, subordinates: [] });
+const persons: Map<number, EmployeeNode> = new Map();
+const employees = ref(store.state.employees);
+const employeeTree: Ref<EmployeeNode> = ref({ person: null, subordinates: [] });
 const actionAdd = ref(false);
 const actionEdit = ref(false);
-const fellowToEdit: Ref<Node<Fellow> | null> = ref(null);
+const employeeToEdit: Ref<Node<Employee> | null> = ref(null);
 
-function addFellow(fellow: NewFellow) {
-  store.commit("addFellow", fellow);
-  addToTree(fellow as Fellow);
+function addEmployee(employee: NewEmployee) {
+  store.commit("addEmployee", employee);
+  addToTree(employee as Employee);
   actionAdd.value = false;
 }
-function editFellow(fellowUpdates: Fellow) {
-  const fellow = persons.get(fellowUpdates.id) as FellowNode;
-  const person = fellow.person as Fellow;
+function editEmployee(employeeUpdates: Employee) {
+  const employee = persons.get(employeeUpdates.id) as EmployeeNode;
+  const person = employee.person as Employee;
   let chiefChanged = false;
-  if (person.chief !== fellowUpdates.chief) {
+  if (person.chief !== employeeUpdates.chief) {
     chiefChanged = true;
   }
-  Object.assign(person, fellowUpdates);
+  Object.assign(person, employeeUpdates);
   chiefChanged && updateTree();
   actionEdit.value = false;
-  store.commit(storeEvents.updateFellow, person);
+  store.commit(storeEvents.updateEmployee, person);
 }
 
-function editRow(fellowNode: Node<Fellow>) {
-  fellowToEdit.value = fellowNode;
+function editRow(employeeNode: Node<Employee>) {
+  employeeToEdit.value = employeeNode;
   actionEdit.value = true;
 }
 function exportData() {
-  const fellowList = fellows.value;
-  const formattedFellowsData = fellowList.map(
+  const employeeList = employees.value;
+  const formattedEmployeesData = employeeList.map(
       ({ name, phone, age, sex, id, chief }) => ({
         name,
         phone,
         age,
         sex: { male: "М", female: "Ж" }[sex],
         id,
-        chief: fellowList.find(({ id }) => id == chief)?.name || "-",
+        chief: employeeList.find(({ id }) => id == chief)?.name || "-",
       })
     ),
     glossary = {
@@ -96,7 +99,7 @@ function exportData() {
       id: "ID",
     };
   const exportHelper = new FileHelper();
-  const linkUrl = exportHelper.exportXlsm(formattedFellowsData, glossary);
+  const linkUrl = exportHelper.exportXlsm(formattedEmployeesData, glossary);
   const link = document.createElement("a");
   link.href = linkUrl;
   link.setAttribute("download", "Сотрудники.xlsm");
@@ -104,11 +107,11 @@ function exportData() {
 }
 
 function addToTree(
-  fellow: Fellow,
-  tree: FellowNode = fellowTree.value as FellowNode
+  employee: Employee,
+  tree: EmployeeNode = employeeTree.value as EmployeeNode
 ) {
-  const { chief: chiefId, id } = fellow;
-  const node: FellowNode = { person: fellow, subordinates: [] };
+  const { chief: chiefId, id } = employee;
+  const node: EmployeeNode = { person: employee, subordinates: [] };
   persons.set(id, node);
   if (!chiefId) {
     tree.subordinates.push(node);
@@ -120,14 +123,14 @@ function addToTree(
   }
   return node;
 }
-function buildFellowTree() {
-  const fellowTree: FellowNode = { person: null, subordinates: [] };
-  const orphans: Map<number, FellowNode[]> = new Map();
-  for (let fellow of fellows.value) {
-    const { chief: chiefId, id } = fellow;
-    const node = addToTree(fellow, fellowTree);
+function buildEmployeeTree() {
+  const employeeTree: EmployeeNode = { person: null, subordinates: [] };
+  const orphans: Map<number, EmployeeNode[]> = new Map();
+  for (let employee of employees.value) {
+    const { chief: chiefId, id } = employee;
+    const node = addToTree(employee, employeeTree);
     if (orphans.has(id)) {
-      const subordinates = orphans.get(id) as FellowNode[];
+      const subordinates = orphans.get(id) as EmployeeNode[];
       node.subordinates = subordinates;
       orphans.delete(id);
     }
@@ -141,18 +144,18 @@ function buildFellowTree() {
     if (!orphans.has(chiefId)) {
       orphans.set(chiefId, [node]);
     } else {
-      const siblings = orphans.get(chiefId) as FellowNode[];
+      const siblings = orphans.get(chiefId) as EmployeeNode[];
       siblings.push(node);
     }
   }
-  return fellowTree;
+  return employeeTree;
 }
 function updateTree() {
   persons.clear();
   initTree(); //Надо бы конечно только часть дерева перестроить...
 }
 function initTree() {
-  fellowTree.value = buildFellowTree();
+  employeeTree.value = buildEmployeeTree();
 }
 
 const columns = [
@@ -162,18 +165,18 @@ const columns = [
     key: "sex",
     title: "Пол",
     size: 0.1,
-    transform: (s: Fellow["sex"]) => t({ male: "М", female: "Ж" }[s]),
+    transform: (s: Employee["sex"]) => t({ male: "М", female: "Ж" }[s]),
   },
   { key: "phone", title: "Телефон", size: 0.3 },
 ];
-const fellowTableColumns = ref(columns);
+const employeeTableColumns = ref(columns);
 const columnsSorting = ref(
   Object.fromEntries(columns.map((col) => [col.key, 1]))
 ) as Ref<{ [key: string]: Sort<any>["direction"] }>;
 
 store.subscribe(({ type, payload }) => {
-  if (type == storeEvents.setFellows) {
-    fellows.value = payload;
+  if (type == storeEvents.setEmployees) {
+    employees.value = payload;
     initTree();
   }
 });

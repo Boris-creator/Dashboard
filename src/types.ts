@@ -1,7 +1,7 @@
-export type Fellow = NewFellow & {
+export type Employee = NewEmployee & {
   id: number;
 };
-export type NewFellow = {
+export type NewEmployee = {
   name: string;
   sex: "male" | "female";
   age: number;

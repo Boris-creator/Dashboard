@@ -8,8 +8,8 @@ import VueI18n from "vue-i18n";
 import { createI18n } from "vue-i18n-composable";
 import { glossary, locale } from "./locales";
 import App from "./App.vue";
-import List from "./components/FellowList.vue";
-import Stats from "./components/FellowsStats.vue";
+import List from "./components/EmployeeList.vue";
+import Stats from "./components/EmployeeStats.vue";
 import { store } from "./store";
 import directives from "./directives";
 

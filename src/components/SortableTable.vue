@@ -80,7 +80,7 @@ import {
   defineEmits,
   watch,
 } from "vue";
-import { Fellow, Node, Sort } from "../types";
+import { Employee, Node, Sort } from "../types";
 
 type props = {
   item: Node<any>;
@@ -98,7 +98,7 @@ const props = withDefaults(defineProps<props>(), {
   sortBy: () => ({ key: "name", direction: 1 }),
   isRoot: false,
 });
-const editRow = defineEmits<{ (e: "edit", value: Node<Fellow>): void }>();
+const editRow = defineEmits<{ (e: "edit", value: Node<Employee>): void }>();
 
 const showHead = ref(props.isRoot);
 const sortByOwn = ref({ key: "name", direction: 1 });

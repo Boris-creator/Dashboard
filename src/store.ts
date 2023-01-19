@@ -3,15 +3,15 @@ import Vuex from "vuex";
 import { StoreOptions } from "vuex";
 import DB from "./utils/database";
 import constants from "./constants";
-import { Fellow, NewFellow } from "./types";
+import { Employee, NewEmployee } from "./types";
 
 Vue.use(Vuex);
 
-type state = { fellows: Fellow[] } & { [key: string]: any };
+type state = { employees: Employee[] } & { [key: string]: any };
 export enum storeEvents {
-  addFellow = "addFellow",
-  updateFellow = "updateFellow",
-  setFellows = "setFellows",
+  addEmployee = "addEmployee",
+  updateEmployee = "updateEmployee",
+  setEmployees = "setEmployees",
   initialize = "initialize",
 }
 
@@ -20,31 +20,31 @@ const db = new DB();
 const storeOptions: StoreOptions<state> = {
   state(): state {
     return {
-      fellows: [],
+      employees: [],
       autoIncrement: 1,
     };
   },
   mutations: {
-    addFellow(state: state, fellow: NewFellow) {
-      if (fellow.id) {
-        state.autoIncrement = fellow.id + 1;
+    addEmployee(state: state, employee: NewEmployee) {
+      if (employee.id) {
+        state.autoIncrement = employee.id + 1;
       } else {
-        fellow.id = state.autoIncrement;
+        employee.id = state.autoIncrement;
         state.autoIncrement++;
       }
-      state.fellows.push(fellow as Fellow);
-      db.create(constants.IDBBase, constants.IDBStore, fellow);
+      state.employees.push(employee as Employee);
+      db.create(constants.IDBBase, constants.IDBStore, employee);
     },
-    updateFellow(state: state, fellow: Fellow) {
-      const existing = state.fellows.find(({ id }) => id == fellow.id);
+    updateEmployee(state: state, employee: Employee) {
+      const existing = state.employees.find(({ id }) => id == employee.id);
       if (existing) {
-        Object.assign(existing, fellow);
+        Object.assign(existing, employee);
       }
-      db.create(constants.IDBBase, constants.IDBStore, fellow);
+      db.create(constants.IDBBase, constants.IDBStore, employee);
     },
-    setFellows(state: state, fellows: Fellow[]) {
-      state.fellows = [...fellows];
-      state.autoIncrement = Math.max(...fellows.map(({ id }) => id)) + 1;
+    setEmployees(state: state, employees: Employee[]) {
+      state.employees = [...employees];
+      state.autoIncrement = Math.max(...employees.map(({ id }) => id)) + 1;
     },
   },
   actions: {
@@ -53,7 +53,7 @@ const storeOptions: StoreOptions<state> = {
         constants.IDBBase,
         constants.IDBStore
       );
-      context.commit(storeEvents.setFellows, storedData);
+      context.commit(storeEvents.setEmployees, storedData);
     },
   },
 };

@@ -20,7 +20,7 @@
             :invalid-feedback="$t(fieldsValidity.name.error)"
           >
             <b-form-input
-              v-model.trim="fellow.name"
+              v-model.trim="employee.name"
               :state="fieldsValidity.name.success || !displayErrors.name"
               trim
               @focus="displayErrors.name = false"
@@ -34,7 +34,7 @@
             :invalid-feedback="$t(fieldsValidity.age.error)"
           >
             <b-form-input
-              v-model.number="fellow.age"
+              v-model.number="employee.age"
               :state="fieldsValidity.age.success || !displayErrors.age"
               type="number"
               min="1"
@@ -48,7 +48,7 @@
             :invalid-feedback="$t(fieldsValidity.phone.error)"
           >
             <b-form-input
-              v-model.trim="fellow.phone"
+              v-model.trim="employee.phone"
               :state="fieldsValidity.phone.success || !displayErrors.phone"
               trim
               @focus="displayErrors.phone = false"
@@ -62,7 +62,7 @@
             class="mt-2"
           >
             <b-form-select
-              v-model="fellow.sex"
+              v-model="employee.sex"
               :options="sexOptions"
               :state="fieldsValidity.sex.success || !displayErrors.sex"
               class="w-50"
@@ -70,7 +70,7 @@
           </b-form-group>
           <b-form-group class="mt-2">
             <b-form-select
-              v-model="fellow.chief"
+              v-model="employee.chief"
               :options="chiefOptions"
               class="w-50"
             ></b-form-select>
@@ -100,20 +100,23 @@ import * as _ from "lodash";
 import * as zod from "zod";
 import { isPossiblePhoneNumber, CountryCode } from "libphonenumber-js";
 import constants from "../constants";
-import { Fellow, NewFellow, Node } from "../types";
+import { Employee, NewEmployee, Node } from "../types";
 const { t, locale } = useI18n();
 const localeName = computed(() => {
   const locales = constants.locales as { [key: string]: string };
   return locales[locale.value] || "US";
 });
 
-const props = defineProps<{ chiefs: Fellow[]; node?: Node<Fellow> | null }>();
+const props = defineProps<{
+  chiefs: Employee[];
+  node?: Node<Employee> | null;
+}>();
 const emit = defineEmits<{
-  (e: "add", value: NewFellow): void;
-  (e: "add", value: Fellow): void;
+  (e: "add", value: NewEmployee): void;
+  (e: "add", value: Employee): void;
 }>();
 
-const fellow = ref(
+const employee = ref(
   props.node
     ? { ...props.node.person }
     : {
@@ -125,8 +128,8 @@ const fellow = ref(
         id: null,
       }
 );
-const chiefsUnavailableFinder = (node: Node<Fellow>) => {
-  const res: Fellow["id"][] = [node.person.id];
+const chiefsUnavailableFinder = (node: Node<Employee>) => {
+  const res: Employee["id"][] = [node.person.id];
   node.subordinates.forEach((s) => {
     res.push(s.person.id, ...chiefsUnavailableFinder(s));
   });
@@ -184,7 +187,7 @@ const validationSchema = {
     .transform((phone: string) => phone.replace(/\D/g, "")), //телефон целесообразно будет хранить без форматирования
 };
 const fieldsValidity = computed(() => {
-  const { name, age, phone, sex } = fellow.value;
+  const { name, age, phone, sex } = employee.value;
   return {
     name: getFieldValidity(name, validationSchema.name),
     age: getFieldValidity(age, validationSchema.age),
@@ -194,7 +197,7 @@ const fieldsValidity = computed(() => {
 });
 
 const formValidity = computed(() => {
-  return zod.object(validationSchema).safeParse(fellow.value);
+  return zod.object(validationSchema).safeParse(employee.value);
 });
 
 function formatValidationResult(check: zod.SafeParseReturnType<any, any>) {
@@ -228,8 +231,8 @@ const dataChanged = computed(() => {
   if (!data) {
     return true;
   }
-  return !_.isEqual(data.person, fellow.value);
-  //return JSON.stringify(data.person) != JSON.stringify(fellow.value);
+  return !_.isEqual(data.person, employee.value);
+  //return JSON.stringify(data.person) != JSON.stringify(employee.value);
 });
 
 function submit() {
@@ -240,10 +243,10 @@ function submit() {
   if (!formValidity.value.success) {
     return;
   }
-  addFellow();
+  addEmployee();
 }
-function addFellow() {
-  const { name, sex, age, phone, chief, id } = fellow.value;
+function addEmployee() {
+  const { name, sex, age, phone, chief, id } = employee.value;
   const output = {
     name,
     sex,
@@ -251,7 +254,7 @@ function addFellow() {
     phone,
     chief,
     id,
-  } as NewFellow;
+  } as NewEmployee;
   emit("add", output);
 }
 </script>

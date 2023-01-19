@@ -1,6 +1,6 @@
 export default {
   IDBBase: "users",
-  IDBStore: "fellows",
+  IDBStore: "employees",
   locales: {
     ru: "RU",
     en: "US",
