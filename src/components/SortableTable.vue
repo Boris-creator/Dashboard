@@ -93,16 +93,16 @@ type props = {
     transform?: Function;
   }[];
   columnsSorting: { [key: string]: Sort<any>["direction"] };
-  sortBy: Ref<{ key: string; direction: number }>;
+  sortBy?: { key: string; direction: number };
 };
 const props = withDefaults(defineProps<props>(), {
-  sortBy: () => ref({ key: "name", direction: 1 }),
+  sortBy: () => ({ key: "name", direction: 1 }),
   isRoot: false,
 });
 const editRow = defineEmits<{ (e: "edit", value: Node<Fellow>): void }>();
 
 const showHead = ref(props.isRoot);
-const sortByOwn = ref({ key: "name", direction: 1 }) as props["sortBy"];
+const sortByOwn = ref({ key: "name", direction: 1 });
 const columnsSorting = ref({ ...props.columnsSorting });
 const sortedItems = computed(() => {
   const { key, direction } = sortByOwn.value;
@@ -115,6 +115,7 @@ watch(
   () => props.sortBy.key,
   (key) => {
     sortByOwn.value.key = key;
+    sortByOwn.value.direction = props.sortBy.direction;
   }
 );
 watch(

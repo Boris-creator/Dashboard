@@ -18,7 +18,6 @@
       :columns="fellowTableColumns"
       :columnsSorting="columnsSorting"
       :isRoot="true"
-      :sortBy="sortBy"
       @edit="editRow"
     ></sortable-table>
     <b-modal v-model="actionAdd" hide-footer>
@@ -55,9 +54,9 @@ let actionEdit = ref(false);
 const fellowToEdit: Ref<Node<Fellow> | null> = ref(null);
 
 function addFellow(fellow: NewFellow) {
+  store.commit("addFellow", fellow);
   addToTree(fellow as Fellow);
   actionAdd.value = false;
-  store.commit("addFellow", fellow);
 }
 function editFellow(fellowUpdates: Fellow) {
   const fellow = persons.get(fellowUpdates.id) as FellowNode;
@@ -168,7 +167,6 @@ const columns = [
   { key: "phone", title: "Телефон", size: 0.3 },
 ];
 const fellowTableColumns = ref(columns);
-const sortBy = ref({ key: "name", direction: 1 });
 const columnsSorting = ref(
   Object.fromEntries(columns.map((col) => [col.key, 1]))
 ) as Ref<{ [key: string]: Sort<any>["direction"] }>;

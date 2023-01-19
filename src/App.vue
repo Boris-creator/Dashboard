@@ -5,6 +5,7 @@
         <b-col cols="3" class="sidebar">
           <b-container>
             <b-row>
+              <b-badge variant="dark">{{ t("Язык") }}</b-badge>
               <b-select
                 v-model="locale"
                 :options="[
@@ -30,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from "vue";
 import { useI18n } from "vue-i18n-composable";
 import DB from "./utils/database";
 import { store, storeEvents } from "./store";
@@ -46,6 +48,13 @@ async function setup() {
   }
   store.commit(storeEvents.initialize);
 }
+watch(locale, (l) => {
+  try {
+    localStorage.lang = l;
+  } catch (e) {
+    //Хранилище может быть переполнено или, что вероятнее, к нему может быть закрыт доступ.
+  }
+});
 setup();
 </script>
 

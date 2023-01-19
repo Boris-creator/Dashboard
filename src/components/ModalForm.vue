@@ -82,6 +82,7 @@
             @mousedown="submit"
             :disabled="!dataChanged"
             class="w-100"
+            :class="{ 'my-disabled': !formValidity.success }"
             >{{ $t("Сохранить") }}</b-button
           >
         </b-col></b-row
@@ -99,7 +100,10 @@ import { Fellow, NewFellow, Node } from "../types";
 const { t } = useI18n();
 
 const props = defineProps<{ chiefs: Fellow[]; node?: Node<Fellow> | null }>();
-const emit = defineEmits<{ (e: "add", value: NewFellow): void }>();
+const emit = defineEmits<{
+  (e: "add", value: NewFellow): void;
+  (e: "add", value: Fellow): void;
+}>();
 
 const fellow = ref(
   props.node
@@ -242,4 +246,9 @@ function addFellow() {
 }
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.my-disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+</style>

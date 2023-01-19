@@ -9,4 +9,5 @@ export const glossary: glossary = {
   en: messages.en,
   ru: Object.fromEntries(Object.keys(messages.en).map((k) => [k, k])),
 };
-export const locale = navigator.language.replace(/\-.+/, "");
+export const locale =
+  localStorage.lang || navigator.language.replace(/\-.+/, "");
