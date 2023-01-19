@@ -46,7 +46,7 @@ async function setup() {
   if (!storedData.length) {
     await db.bulkCreate(constants.IDBBase, constants.IDBStore, fellows);
   }
-  store.commit(storeEvents.initialize);
+  store.dispatch(storeEvents.initialize);
 }
 watch(locale, (l) => {
   try {

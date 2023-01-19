@@ -1,2 +1,2 @@
-import { cleave } from "./cleave";
+import { cleave } from "./mask";
 export default { cleave };

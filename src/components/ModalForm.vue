@@ -49,15 +49,12 @@
           >
             <b-form-input
               v-model.trim="fellow.phone"
-              v-cleave="{
-                phone: true,
-                phoneRegionCode: { ru: 'RU', en: 'US' }[locale],
-              }"
               :state="fieldsValidity.phone.success || !displayErrors.phone"
               trim
               @focus="displayErrors.phone = false"
               @blur="displayErrors.phone = true"
               @keyup.enter="displayErrors.phone = true"
+              v-cleave="localeName"
             ></b-form-input>
           </b-form-group>
           <b-form-group
@@ -101,8 +98,14 @@ import { computed, ref, defineProps, defineEmits } from "vue";
 import { useI18n } from "vue-i18n-composable";
 import * as _ from "lodash";
 import * as zod from "zod";
+import { isPossiblePhoneNumber, CountryCode } from "libphonenumber-js";
+import constants from "../constants";
 import { Fellow, NewFellow, Node } from "../types";
 const { t, locale } = useI18n();
+const localeName = computed(() => {
+  const locales = constants.locales as { [key: string]: string };
+  return locales[locale.value] || "US";
+});
 
 const props = defineProps<{ chiefs: Fellow[]; node?: Node<Fellow> | null }>();
 const emit = defineEmits<{
@@ -171,9 +174,11 @@ const validationSchema = {
     .int()
     .min(18, "Старше 18"),
   phone: zod
-    .string({ invalid_type_error: "Заполните это поле" })
-    .regex(
-      /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/,
+    .string({
+      invalid_type_error: "Заполните это поле",
+    })
+    .refine(
+      (phone) => isPossiblePhoneNumber(phone, localeName.value as CountryCode),
       "Некорректный номер"
     )
     .transform((phone: string) => phone.replace(/\D/g, "")), //телефон целесообразно будет хранить без форматирования

@@ -100,8 +100,8 @@ const ageSlice = computed(() => {
 const sexSlice = computed(() => {
   const statsSex = getSlice(
     persons.value,
-    labels.value.sex,
-    ({ sex }) => labels.value.sex[sex],
+    ["male", "female"],
+    ({ sex }) => sex,
     "percent"
   );
   return {

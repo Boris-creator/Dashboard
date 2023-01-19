@@ -49,8 +49,8 @@ type FellowNode = Node<Fellow | null>;
 const persons: Map<number, FellowNode> = new Map();
 const fellows = ref(store.state.fellows);
 const fellowTree: Ref<FellowNode> = ref({ person: null, subordinates: [] });
-let actionAdd = ref(false);
-let actionEdit = ref(false);
+const actionAdd = ref(false);
+const actionEdit = ref(false);
 const fellowToEdit: Ref<Node<Fellow> | null> = ref(null);
 
 function addFellow(fellow: NewFellow) {
@@ -61,12 +61,12 @@ function addFellow(fellow: NewFellow) {
 function editFellow(fellowUpdates: Fellow) {
   const fellow = persons.get(fellowUpdates.id) as FellowNode;
   const person = fellow.person as Fellow;
-  let povyshenie = false; // Да что вы знаете про именование переменных...
+  let chiefChanged = false;
   if (person.chief !== fellowUpdates.chief) {
-    povyshenie = true;
+    chiefChanged = true;
   }
   Object.assign(person, fellowUpdates);
-  povyshenie && updateTree();
+  chiefChanged && updateTree();
   actionEdit.value = false;
   store.commit(storeEvents.updateFellow, person);
 }
@@ -82,7 +82,7 @@ function exportData() {
         name,
         phone,
         age,
-        sex: ["М", "Ж"][sex],
+        sex: { male: "М", female: "Ж" }[sex],
         id,
         chief: fellowList.find(({ id }) => id == chief)?.name || "-",
       })
@@ -162,7 +162,7 @@ const columns = [
     key: "sex",
     title: "Пол",
     size: 0.1,
-    transform: (s: Fellow["sex"]) => t(["М", "Ж"][s]),
+    transform: (s: Fellow["sex"]) => t({ male: "М", female: "Ж" }[s]),
   },
   { key: "phone", title: "Телефон", size: 0.3 },
 ];
@@ -171,15 +171,13 @@ const columnsSorting = ref(
   Object.fromEntries(columns.map((col) => [col.key, 1]))
 ) as Ref<{ [key: string]: Sort<any>["direction"] }>;
 
-// Можно было использовать store.subscribe, но мутация storeEvents.initialize асинхронная, так что через watch получается проще.
-watch(
-  () => fellows.value.length,
-  (amount, oldAmount) => {
-    if (amount && !oldAmount) {
-      initTree();
-    }
+store.subscribe(({ type, payload }) => {
+  if (type == storeEvents.setFellows) {
+    fellows.value = payload;
+    initTree();
   }
-);
+});
+
 initTree();
 </script>
 <style lang="scss" src="../assets/main.scss"></style>

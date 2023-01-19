@@ -1,7 +1,7 @@
 [
   {
     "name": "Boris",
-    "sex": 0,
+    "sex": "male",
     "phone": "1034411123",
     "age": 26,
     "id": 1,
@@ -9,7 +9,7 @@
   },
   {
     "name": "Ann",
-    "sex": 1,
+    "sex": "female",
     "phone": "1034411723",
     "age": 40,
     "id": 2,
@@ -17,7 +17,7 @@
   },
   {
     "name": "Maksim",
-    "sex": 0,
+    "sex": "male",
     "phone": "1034411123",
     "age": 79,
     "id": 3,
@@ -25,7 +25,7 @@
   },
   {
     "name": "Dmitry",
-    "sex": 0,
+    "sex": "male",
     "phone": "1034411123",
     "age": 28,
     "id": 5,
@@ -33,7 +33,7 @@
   },
   {
     "name": "Garri",
-    "sex": 0,
+    "sex": "male",
     "phone": "1034411123",
     "age": 59,
     "id": 4,

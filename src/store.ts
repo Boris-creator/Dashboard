@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
+import { StoreOptions } from "vuex";
 import DB from "./utils/database";
 import constants from "./constants";
 import { Fellow, NewFellow } from "./types";
@@ -16,12 +17,7 @@ export enum storeEvents {
 
 const db = new DB();
 
-function setFellows(state: state, fellows: Fellow[]) {
-  state.fellows.splice(0, state.fellows.length, ...fellows);
-  state.autoIncrement = Math.max(...fellows.map(({ id }) => id)) + 1;
-}
-
-const storeOptions = {
+const storeOptions: StoreOptions<state> = {
   state(): state {
     return {
       fellows: [],
@@ -47,15 +43,17 @@ const storeOptions = {
       db.create(constants.IDBBase, constants.IDBStore, fellow);
     },
     setFellows(state: state, fellows: Fellow[]) {
-      setFellows(state, fellows);
+      state.fellows = [...fellows];
+      state.autoIncrement = Math.max(...fellows.map(({ id }) => id)) + 1;
     },
-
-    async initialize(state: state) {
+  },
+  actions: {
+    async initialize(context) {
       const storedData = await db.findAll(
         constants.IDBBase,
         constants.IDBStore
       );
-      setFellows(state, storedData);
+      context.commit(storeEvents.setFellows, storedData);
     },
   },
 };

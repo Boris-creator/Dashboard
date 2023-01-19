@@ -3,7 +3,7 @@ export type Fellow = NewFellow & {
 };
 export type NewFellow = {
   name: string;
-  sex: 0 | 1;
+  sex: "male" | "female";
   age: number;
   phone: string;
   chief?: number;
