@@ -49,6 +49,10 @@
           >
             <b-form-input
               v-model.trim="fellow.phone"
+              v-cleave="{
+                phone: true,
+                phoneRegionCode: { ru: 'RU', en: 'US' }[locale],
+              }"
               :state="fieldsValidity.phone.success || !displayErrors.phone"
               trim
               @focus="displayErrors.phone = false"
@@ -92,12 +96,13 @@
 </template>
 
 <script setup lang="ts">
+//TO DO: fix input mask internationalization
 import { computed, ref, defineProps, defineEmits } from "vue";
 import { useI18n } from "vue-i18n-composable";
 import * as _ from "lodash";
 import * as zod from "zod";
 import { Fellow, NewFellow, Node } from "../types";
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const props = defineProps<{ chiefs: Fellow[]; node?: Node<Fellow> | null }>();
 const emit = defineEmits<{

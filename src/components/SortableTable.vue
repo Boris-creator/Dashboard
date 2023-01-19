@@ -3,7 +3,7 @@
     @contextmenu.prevent.stop="
       sortedItems.length && !isRoot && (showHead = !showHead)
     "
-    class="my-table mt-2 border-3 border-start"
+    class="my-table mt-1 border-3 border-start"
     :class="{ 'border-dark': showHead }"
     ref="table-body"
   >
@@ -75,7 +75,6 @@ import SortableTable from "./SortableTable.vue";
 import {
   computed,
   ref,
-  Ref,
   defineProps,
   withDefaults,
   defineEmits,
