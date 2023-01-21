@@ -1,106 +1,88 @@
 <template>
-  <b-form @submit.stop.prevent>
-    <b-container>
-      <b-row>
-        <b-col>
-          <h2>
-            {{
-              {
-                create: $t("Добавление сотрудника"),
-                update: $t("Редактирование данных"),
-              }[destination]
-            }}
-          </h2>
-        </b-col>
-      </b-row>
-      <b-row>
-        <b-col>
-          <b-form-group
-            :label="$t('Имя')"
-            :invalid-feedback="$t(fieldsValidity.name.error)"
-          >
-            <b-form-input
-              v-model.trim="employee.name"
-              :state="fieldsValidity.name.success || !displayErrors.name"
-              trim
-              @focus="displayErrors.name = false"
-              @blur="displayErrors.name = true"
-              @keyup.enter="displayErrors.name = true"
-              autofocus
-            ></b-form-input>
-          </b-form-group>
-          <b-form-group
-            :label="$t('Возраст')"
-            :invalid-feedback="$t(fieldsValidity.age.error)"
-          >
-            <b-form-input
+  <ValidationObserver v-slot="{ handleSubmit }">
+    <b-form @submit.prevent="handleSubmit(submit)">
+      <b-container>
+        <b-row>
+          <b-col>
+            <h2>
+              {{
+                {
+                  create: $t("Добавление сотрудника"),
+                  update: $t("Редактирование данных"),
+                }[destination]
+              }}
+            </h2>
+          </b-col>
+        </b-row>
+        <b-row>
+          <b-col>
+            <FormInput
+              rules="required|name"
+              v-model="employee.name"
+              :label="$t('Имя')"
+              :placeholder="$t('Имя')"
+              @input="employee.name = $event"
+            />
+            <FormInput
+              rules="required|age"
               v-model.number="employee.age"
-              :state="fieldsValidity.age.success || !displayErrors.age"
               type="number"
-              min="1"
-              @focus="displayErrors.age = false"
-              @blur="displayErrors.age = true"
-              @keyup.enter="displayErrors.age = true"
-            ></b-form-input>
-          </b-form-group>
-          <b-form-group
-            :label="$t('Телефон')"
-            :invalid-feedback="$t(fieldsValidity.phone.error)"
-          >
-            <b-form-input
-              v-model.trim="employee.phone"
-              :state="fieldsValidity.phone.success || !displayErrors.phone"
-              trim
-              @focus="displayErrors.phone = false"
-              @blur="displayErrors.phone = true"
-              @keyup.enter="displayErrors.phone = true"
-              v-cleave="localeName"
-            ></b-form-input>
-          </b-form-group>
-          <b-form-group
-            :invalid-feedback="fieldsValidity.sex.error"
-            class="mt-2"
-          >
-            <b-form-select
+              :placeholder="$t('Возраст')"
+              :label="$t('Возраст')"
+              @input="employee.age = $event"
+            />
+            <FormInput
+              rules="required|phone"
+              v-model="employee.phone"
+              :placeholder="$t('Телефон')"
+              :label="$t('Телефон')"
+              :mask="localeName"
+              @input="employee.phone = $event"
+            />
+            <FormInput
+              rules="required|sex"
               v-model="employee.sex"
               :options="sexOptions"
-              :state="fieldsValidity.sex.success || !displayErrors.sex"
-              class="w-50"
-            ></b-form-select>
-          </b-form-group>
-          <b-form-group class="mt-2">
-            <b-form-select
+              :label="$t('Пол')"
+              elementType="select"
+              @input="employee.sex = $event"
+            />
+            <FormInput
               v-model="employee.chief"
               :options="chiefOptions"
-              class="w-50"
-            ></b-form-select>
-          </b-form-group>
-        </b-col>
-      </b-row>
-      <b-row align-h="end"
-        ><b-col cols="6">
-          <b-button
-            @mousedown="submit"
-            :disabled="!dataChanged"
-            class="w-100"
-            :class="{ 'my-disabled': !formValidity.success }"
-            >{{ $t("Сохранить") }}</b-button
-          >
-        </b-col></b-row
-      >
-    </b-container>
-  </b-form>
+              :label="t('Выберите начальника')"
+              elementType="select"
+              @input="employee.chief = $event"
+            />
+          </b-col>
+        </b-row>
+        <b-row align-h="end" class="mt-4"
+          ><b-col cols="6">
+            <b-button type="submit" :disabled="!dataChanged" class="w-100">{{
+              $t("Сохранить")
+            }}</b-button>
+          </b-col></b-row
+        >
+      </b-container>
+    </b-form>
+  </ValidationObserver>
 </template>
 
 <script setup lang="ts">
-//TO DO: fix input mask internationalization
 import { computed, ref, defineProps, defineEmits } from "vue";
+import { required } from "vee-validate/dist/rules";
+import { extend } from "vee-validate";
 import { useI18n } from "vue-i18n-composable";
 import * as _ from "lodash";
 import * as zod from "zod";
 import { isPossiblePhoneNumber, CountryCode } from "libphonenumber-js";
 import constants from "../constants";
 import { Employee, NewEmployee, Node } from "../types";
+import FormInput from "./FormInput.vue";
+import { ValidationObserver } from "vee-validate";
+
+type SelectOptions = { value: string | number | null; text: string }[];
+
 const { t, locale } = useI18n();
 const localeName = computed(() => {
   const locales = constants.locales as { [key: string]: string };
@@ -141,28 +123,21 @@ const chiefsUnAvailable = computed(() => {
   }
   return chiefsUnavailableFinder(props.node);
 });
-type SelectOptions = { value: string | number | null; text: string }[];
 const sexOptions: SelectOptions = [
-    { value: null, text: "Пол" },
-    { value: 0, text: "Мужской" },
-    { value: 1, text: "Женский" },
-  ].map(({ value, text }) => {
-    return { value, text: t(text).toString() };
-  }),
-  chiefOptions: SelectOptions = [
-    { value: null, text: t("Выберите начальника").toString() },
-    ...props.chiefs.map(({ name, id }) => ({
-      text: name,
-      value: id,
-      disabled: chiefsUnAvailable.value.includes(id),
-    })),
-  ];
-const displayErrors = ref({
-  name: false,
-  age: false,
-  phone: false,
-  sex: false,
+  { value: null, text: "Пол" },
+  { value: "male", text: "Мужской" },
+  { value: "female", text: "Женский" },
+].map(({ value, text }) => {
+  return { value, text: t(text).toString() };
 });
+const chiefOptions: SelectOptions = [
+  { value: null, text: t("Выберите начальника").toString() },
+  ...props.chiefs.map(({ name, id }) => ({
+    text: name,
+    value: id,
+    disabled: chiefsUnAvailable.value.includes(id),
+  })),
+];
 
 const validationSchema = {
   name: zod
@@ -171,11 +146,14 @@ const validationSchema = {
     })
     .min(1, "Заполните это поле")
     .regex(/^[а-яa-z]+$/i, "Только буквы"),
-  sex: zod.number({ invalid_type_error: "Укажите пол" }),
-  age: zod
-    .number({ invalid_type_error: "Укажите возраст" })
-    .int()
-    .min(18, "Старше 18"),
+  sex: zod.string({ invalid_type_error: "Укажите пол" }),
+  age: zod.preprocess(
+    (value) => (value ? Number(value) : null),
+    zod
+      .number({ invalid_type_error: "Укажите возраст" })
+      .int()
+      .min(18, "Старше 18")
+  ),
   phone: zod
     .string({
       invalid_type_error: "Заполните это поле",
@@ -186,18 +164,19 @@ const validationSchema = {
     )
     .transform((phone: string) => phone.replace(/\D/g, "")), //телефон целесообразно будет хранить без форматирования
 };
-const fieldsValidity = computed(() => {
-  const { name, age, phone, sex } = employee.value;
-  return {
-    name: getFieldValidity(name, validationSchema.name),
-    age: getFieldValidity(age, validationSchema.age),
-    phone: getFieldValidity(phone, validationSchema.phone),
-    sex: getFieldValidity(sex, validationSchema.sex),
-  };
-});
 
-const formValidity = computed(() => {
-  return zod.object(validationSchema).safeParse(employee.value);
+for (let key of ["name", "age", "phone", "sex"]) {
+  extend(key, (value: string) => {
+    const keyValidation = key as keyof typeof validationSchema;
+    const check = formatValidationResult(
+      validationSchema[keyValidation].safeParse(value)
+    );
+    return check.success || String(t(check.error));
+  });
+}
+extend("required", {
+  ...required,
+  message: () => t("Заполните это поле").toString(),
 });
 
 function formatValidationResult(check: zod.SafeParseReturnType<any, any>) {
@@ -214,16 +193,6 @@ function formatValidationResult(check: zod.SafeParseReturnType<any, any>) {
     data: check.data,
   };
 }
-function getFieldValidity(value: any, schema: zod.Schema) {
-  const { success, error, data } = formatValidationResult(
-    schema.safeParse(value)
-  );
-  return {
-    data,
-    error,
-    success: success,
-  };
-}
 
 const destination = props.node ? "update" : "create";
 const dataChanged = computed(() => {
@@ -232,20 +201,9 @@ const dataChanged = computed(() => {
     return true;
   }
   return !_.isEqual(data.person, employee.value);
-  //return JSON.stringify(data.person) != JSON.stringify(employee.value);
 });
 
 function submit() {
-  const fields = ["name", "sex", "age", "phone"] as const;
-  for (let key of fields) {
-    displayErrors.value[key] = true;
-  }
-  if (!formValidity.value.success) {
-    return;
-  }
-  addEmployee();
-}
-function addEmployee() {
   const { name, sex, age, phone, chief, id } = employee.value;
   const output = {
     name,
@@ -259,9 +217,4 @@ function addEmployee() {
 }
 </script>
 
-<style lang="scss" scoped>
-.my-disabled {
-  opacity: 0.7;
-  cursor: default;
-}
-</style>
+<style lang="scss" scoped></style>

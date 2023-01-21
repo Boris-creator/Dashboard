@@ -23,7 +23,7 @@
           </b-container>
         </b-col>
         <b-col cols="9">
-          <router-view> </router-view>
+          <router-view />
         </b-col>
       </b-row>
     </b-container>

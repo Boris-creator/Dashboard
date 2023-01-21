@@ -15,5 +15,5 @@ export type Node<T> = {
 };
 export type Sort<T> = {
   key: keyof T;
-  direction: -1 | 1;
+  direction: "down" | "up";
 };

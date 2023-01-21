@@ -19,19 +19,16 @@
       :columnsSorting="columnsSorting"
       :isRoot="true"
       @edit="editRow"
-    ></sortable-table>
+    />
     <b-modal v-model="actionAdd" hide-footer>
-      <add-employee-form
-        :chiefs="employees"
-        @add="addEmployee"
-      ></add-employee-form>
+      <add-employee-form :chiefs="employees" @add="addEmployee" />
     </b-modal>
     <b-modal v-model="actionEdit" hide-footer>
       <add-employee-form
         :chiefs="employees"
         @add="editEmployee"
         :node="employeeToEdit"
-      ></add-employee-form>
+      />
     </b-modal>
   </b-container>
 </template>
@@ -171,7 +168,7 @@ const columns = [
 ];
 const employeeTableColumns = ref(columns);
 const columnsSorting = ref(
-  Object.fromEntries(columns.map((col) => [col.key, 1]))
+  Object.fromEntries(columns.map((col) => [col.key, "up"]))
 ) as Ref<{ [key: string]: Sort<any>["direction"] }>;
 
 store.subscribe(({ type, payload }) => {

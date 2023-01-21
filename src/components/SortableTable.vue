@@ -20,8 +20,8 @@
           <span>{{ $t(column.title) }}</span>
           <span
             v-show="column.key == sortByOwn.key"
-            @click="sortByOwn.direction *= -1"
-            :class="{ 'sort-dir': 1, up: columnsSorting[column.key] == 1 }"
+            @click="reverseDirection"
+            :class="{ 'sort-dir': 1, up: columnsSorting[column.key] == 'up' }"
           ></span>
         </div>
       </div>
@@ -92,24 +92,28 @@ type props = {
     transform?: Function;
   }[];
   columnsSorting: { [key: string]: Sort<any>["direction"] };
-  sortBy?: { key: string; direction: number };
+  sortBy?: { key: string; direction: string };
 };
 const props = withDefaults(defineProps<props>(), {
-  sortBy: () => ({ key: "name", direction: 1 }),
+  sortBy: () => ({ key: "name", direction: "up" }),
   isRoot: false,
 });
 const editRow = defineEmits<{ (e: "edit", value: Node<Employee>): void }>();
 
 const showHead = ref(props.isRoot);
-const sortByOwn = ref({ key: "name", direction: 1 });
+const sortByOwn = ref({ key: "name", direction: "up" });
 const columnsSorting = ref({ ...props.columnsSorting });
 const sortedItems = computed(() => {
   const { key, direction } = sortByOwn.value;
   return props.item.subordinates.sort(({ person: p1 }, { person: p2 }) => {
     const order = p1[key] > p2[key] ? 1 : p1[key] == p2[key] ? 0 : -1;
-    return order * direction;
+    return direction == "up" ? order : -order;
   });
 });
+function reverseDirection() {
+  const direction = sortByOwn.value.direction as Sort<any>["direction"];
+  sortByOwn.value.direction = { up: "down", down: "up" }[direction];
+}
 watch(
   () => props.sortBy.key,
   (key) => {
@@ -126,7 +130,7 @@ watch(
 watch(
   () => sortByOwn.value.direction,
   (dir) => {
-    const value = dir as 1 | -1;
+    const value = dir as "up" | "down";
     columnsSorting.value[sortByOwn.value.key] = value;
   }
 );
